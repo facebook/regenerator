@@ -34,7 +34,9 @@
     "ast-types": "~0.3.5",
     "recast": "~0.4.23",
     "private": "~0.0.5",
-    "escodegen": "0.0.27"
+    "escodegen": "0.0.27",
+    "convert-source-map": "~0.2.6",
+    "through": "~2.3.4"
   },
   "optionalDependencies": {
     "mocha": "~1.13.0",
