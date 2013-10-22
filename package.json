@@ -33,7 +33,8 @@
     "esprima": "git://github.com/ariya/esprima.git#harmony",
     "ast-types": "~0.3.5",
     "recast": "~0.4.23",
-    "private": "~0.0.5"
+    "private": "~0.0.5",
+    "escodegen": "0.0.27"
   },
   "optionalDependencies": {
     "mocha": "~1.13.0",

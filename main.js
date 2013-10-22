@@ -13,6 +13,7 @@ var transform = require("./lib/visit").transform;
 var guessTabWidth = require("./lib/util").guessTabWidth;
 var recast = require("recast");
 var esprimaHarmony = require("esprima");
+var escodegen = require("escodegen");
 var genFunExp = /\bfunction\s*\*/;
 
 assert.ok(
@@ -20,7 +21,9 @@ assert.ok(
   "Bad esprima version: " + esprimaHarmony.version
 );
 
-function regenerate(source) {
+function regenerate(source, opts) {
+  opts = opts || {};
+
   if (!genFunExp.test(source)) {
     return source; // Shortcut: no generators to transform.
   }
@@ -32,8 +35,13 @@ function regenerate(source) {
     esprima: esprimaHarmony
   };
 
+  if (opts.sourceMap) {
+    options.sourceMap = 'filename';
+    options.sourceMapWithCode = true;
+  }
+
   var ast = recast.parse(source, options);
-  return recast.print(transform(ast), options);
+  return escodegen.generate(transform(ast).program, options);
 }
 
 // To modify an AST directly, call require("regenerator").transform(ast).

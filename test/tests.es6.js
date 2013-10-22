@@ -756,7 +756,7 @@ describe("empty while loops", function() {
 
     var info = gen(false).next();
     assert.strictEqual(info.done, true);
-    assert.ok(/empty while loop/.test(info.value));
-    assert.ok(/empty do-while loop/.test(info.value));
+    assert.ok(/while \(x\) {/.test(info.value));
+    assert.ok(/} while \(x\)/.test(info.value));
   });
 });
