@@ -36,7 +36,7 @@ function regenerate(source, opts) {
   };
 
   if (opts.sourceMap) {
-    options.sourceMap = 'filename';
+    options.sourceMap = opts.sourceMap;
     options.sourceMapWithCode = true;
   }
 
