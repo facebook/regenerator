@@ -2,18 +2,24 @@ var through = require('through'),
     convert = require('convert-source-map'),
     regenerate = require('./main');
 
+function isString(obj) {
+  return Object.prototype.toString.call(obj) === "[object String]";
+}
+
 module.exports = function(filename) {
   var buf = '';
   return through(
     function(chunk) { buf = buf + chunk; },
     function() {
       var result = regenerate(buf, {sourceMap: filename});
-      if (typeof result === 'string') {
+      if (isString(result)) {
         this.queue(result);
       } else {
-        var map = convert.fromObject(result.map);
-        map.setProperty('sources', [filename]);
-        this.queue(result.code + '\n' + map.toComment());
+        result.map.setSourceContent(filename, buf);
+        this.queue(
+          result.code +
+          '\n' +
+          convert.fromObject(result.map).toComment());
       }
       this.queue(null);
     });

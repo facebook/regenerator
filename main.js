@@ -35,13 +35,29 @@ function regenerate(source, opts) {
     esprima: esprimaHarmony
   };
 
+  var ast = transform(recast.parse(source, options)).program;
+
   if (opts.sourceMap) {
     options.sourceMap = opts.sourceMap;
     options.sourceMapWithCode = true;
+    var result = escodegen.generate(ast, options);
+    result.map = fixSourceMap(result.map);
+    return result;
+  } else {
+    return escodegen.generate(ast, options);
   }
 
-  var ast = recast.parse(source, options);
-  return escodegen.generate(transform(ast).program, options);
+}
+
+/**
+ * escodegen generates source mapping which maps to originalLine: false, we
+ * filter them out cause it doesn't work properly with a toolset down the road
+ */
+function fixSourceMap(sourcemap) {
+  sourcemap._mappings = sourcemap._mappings.filter(function(mapping) {
+    return !!mapping.originalLine;
+  });
+  return sourcemap;
 }
 
 // To modify an AST directly, call require("regenerator").transform(ast).
