@@ -1057,10 +1057,25 @@ describe("for-of loop usage", function () {
   }
 
   it("should get each item", function () {
+    var arr = [1,2,3,4];
+    var i = 0;
+    arr.next = function () {
+        var ret = {
+            done: false,
+            value: undefined
+        };
+        if (i < this.length) {
+            ret.value = this[i];
+        } else {
+            ret.done = true;
+        }
+        i++;
+        return ret;
+    }
+
     check(
-      gen(
-        [1, 2, 3, 4]),
-        [1, 2, 3, 4]
-      );
+      gen(arr),
+      arr
+    );
   });
 })
