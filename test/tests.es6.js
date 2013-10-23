@@ -1048,3 +1048,19 @@ describe("new expressions", function() {
     assert.deepEqual(g.next("qwer"), { value: "qwer", done: true });
   });
 });
+
+describe("for-of loop usage", function () {
+  function* gen(arr) {
+    for (var item of arr) {
+      yield item;
+    }
+  }
+
+  it("should get each item", function () {
+    check(
+      gen(
+        [1, 2, 3, 4]),
+        [1, 2, 3, 4]
+      );
+  });
+})
