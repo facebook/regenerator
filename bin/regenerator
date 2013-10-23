@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+// -*- mode: js -*-
+
+var options = require("commander")
+  .version(require("../package.json").version)
+  .usage("[options] <file>")
+  .option("-r, --include-runtime", "Prepend the runtime to the output.")
+  .parse(process.argv);
+
+var file = options.args[0];
+if (typeof file !== "string") {
+  options.outputHelp();
+  process.exit(-1);
+}
+
+process.stdout.write(require("../main")(
+  require("fs").readFileSync(file, "utf-8"),
+  options.includeRuntime
+));

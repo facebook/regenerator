@@ -11,7 +11,7 @@ var fs = require("fs");
 var path = require("path");
 var semver = require("semver");
 var spawn = require("child_process").spawn;
-var regenerate = require("../main");
+var regenerator = require("../main");
 
 function convert(es6File, es5File, callback) {
   fs.readFile(es6File, "utf-8", function(err, es6) {
@@ -19,7 +19,7 @@ function convert(es6File, es5File, callback) {
       return callback(err);
     }
 
-    fs.writeFile(es5File, regenerate(es6), callback);
+    fs.writeFile(es5File, regenerator(es6), callback);
   });
 }
 
@@ -98,9 +98,13 @@ function makeMochaCopyFunction(fileName) {
 enqueue(makeMochaCopyFunction("mocha.js"));
 enqueue(makeMochaCopyFunction("mocha.css"));
 
-enqueue(bundle, [
-  "./test/tests.es5.js",
-  "test/tests.browser.js"
-]);
+if (!semver.eq(process.version, "0.11.7")) {
+  // uglify-js does not work properly due to Node 0.11.7 bug.
+  // (https://github.com/joyent/node/issues/6235)
+  enqueue(bundle, [
+    "./test/tests.es5.js",
+    "test/tests.browser.js"
+  ]);
+}
 
 flush();

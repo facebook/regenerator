@@ -16,20 +16,19 @@
     "desugaring",
     "ES6"
   ],
-  "version": "0.1.7",
+  "version": "0.2.2",
   "homepage": "http://github.com/facebook/regenerator",
   "repository": {
     "type": "git",
     "url": "git://github.com/facebook/regenerator.git"
   },
   "main": "main.js",
-  "bin": {
-    "regenerate": "bin/regenerate"
-  },
+  "bin": "bin/regenerator",
   "scripts": {
     "test": "node test/run.js"
   },
   "dependencies": {
+    "commander": "~2.0.0",
     "esprima": "git://github.com/ariya/esprima.git#harmony",
     "ast-types": "~0.3.5",
     "recast": "~0.4.23",
@@ -42,6 +41,6 @@
   },
   "license": "BSD",
   "engines": {
-    "node": ">= 0.11"
+    "node": ">= 0.6"
   }
 }

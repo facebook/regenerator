@@ -3,7 +3,7 @@ regenerator [![Build Status](https://travis-ci.org/facebook/regenerator.png?bran
 
 This package implements a fully-functional source transformation that
 takes the proposed syntax for generators/`yield` from future versions of
-JS (ECMAScript6 or ES6, experimentally implemented in Node.js v0.11) and
+JS ([ECMAScript6 or ES6](http://wiki.ecmascript.org/doku.php?id=harmony:specification_drafts), experimentally implemented in Node.js v0.11) and
 spits out efficient JS-of-today (ES5) that behaves the same way.
 
 A small runtime library (less than 1KB compressed) is required to provide the
@@ -15,7 +15,7 @@ Installation
 
 From NPM:
 ```sh
-npm install regenerator
+npm install -g regenerator
 ```
 
 From GitHub:
@@ -34,12 +34,14 @@ You have several options for using this module.
 
 Simplest usage:
 ```sh
-path/to/node_modules/regenerator/bin/regenerate es6.js > es5.js
+regenerator es6.js > es5.js # Just the transform.
+regenerator --include-runtime es6.js > es5.js # Add the runtime too.
 ```
 
 Programmatic usage:
 ```js
 var es5Source = require("regenerator")(es6Source);
+var es5SourceWithRuntime = require("regenerator")(es6Source, true);
 ```
 
 AST transformation:
@@ -60,8 +62,7 @@ will be populated automatically with the problematic code).
 
 Alternatively, you can
 [fork](https://github.com/facebook/regenerator/fork) the repository,
-create some failing tests cases in [test/tests.es6.js](
-https://github.com/facebook/regenerator/blob/master/test/tests.es6.js),
+create some failing tests cases in [test/tests.es6.js](test/tests.es6.js),
 and send pull requests for me to fix.
 
 If you're feeling especially brave, you are more than welcome to dive into
