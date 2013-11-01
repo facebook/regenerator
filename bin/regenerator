@@ -6,6 +6,8 @@ var options = require("commander")
   .usage("[options] <file>")
   .option("-r, --include-runtime",
     "Prepend the runtime to the output. [false]", false);
+  .option("-n, --node-runtime",
+    "Prepend the runtine trough a node require call. [false]", false);
   .parse(process.argv);
 
 var file = options.args[0];

@@ -22,9 +22,13 @@ assert.ok(
 );
 
 function regenerator(source, options) {
-  var runtime = options.includeRuntime ? fs.readFileSync(
-    regenerator.runtime.dev, "utf-8"
-  ) + "\n" : "";
+  var runtime = "";
+  if (options.includeRuntime) {
+    runtime = fs.readFileSync(regenerator.runtime.dev, "utf-8") + "\n";
+  } else if (options.nodeRuntime) {
+    runtime = "var wrapGenerator = " +
+        "require(\"regenerator/runtime/dev\").wrapGenerator;\n";
+  }
 
   if (!genFunExp.test(source)) {
     return runtime + source; // Shortcut: no generators to transform.
