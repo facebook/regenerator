@@ -22,12 +22,6 @@ assert.ok(
 );
 
 function regenerator(source, options) {
-  if (!options) {
-    options = {
-      includeRuntime: false
-    };
-  }
-
   var runtime = options.includeRuntime ? fs.readFileSync(
     regenerator.runtime.dev, "utf-8"
   ) + "\n" : "";
