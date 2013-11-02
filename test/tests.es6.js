@@ -922,3 +922,52 @@ describe("unqualified function calls", function() {
     assert.strictEqual(info.done, true);
   });
 });
+
+describe("yield* generator", function () {
+  it("returns correct value", function () {
+    function* foo() {
+      yield 3;
+
+      return yield* bar()
+    }
+
+    function* bar() {
+      yield 3;
+
+      return 4
+    }
+
+    var gen = foo()
+    gen.next()
+    gen.next()
+    var value = gen.next().value
+
+    assert.equal(value, 4)
+  })
+
+  it("returns correc thing", function () {
+    function pumpNumber(gen) {
+      var n = 0
+
+      while (true) {
+        var res = gen.next(n)
+        n = res.value
+        if (res.done) return n
+      }
+    }
+
+    function* foo() {
+      return (yield* bar()) + (yield* bar())
+    }
+
+    function* bar() {
+      return (yield 2) + (yield 3)
+    }
+
+    var res1 = pumpNumber(bar())
+    var res2 = pumpNumber(foo())
+
+    assert.equal(res1, 5)
+    assert.equal(res2, 10)
+  })
+})
