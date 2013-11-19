@@ -144,6 +144,10 @@
     };
   }
 
+  Generator.prototype.toString = function() {
+    return "[object Generator]";
+  };
+
   function Context() {
     this.reset();
   }
