@@ -3,8 +3,9 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
+ * additional grant of patent rights can be found in the PATENTS file in
+ * the same directory.
  */
 
 var fs = require("fs");
@@ -68,7 +69,7 @@ function asyncCallback(err) {
 
 if (semver.gte(process.version, "0.11.2")) {
   enqueue("mocha", [
-    "--harmony-generators",
+    "--harmony",
     "--reporter", "spec",
     "./test/tests.es6.js"
   ]);

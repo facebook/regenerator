@@ -16,7 +16,7 @@
     "desugaring",
     "ES6"
   ],
-  "version": "0.2.11",
+  "version": "0.3.1",
   "homepage": "http://github.com/facebook/regenerator",
   "repository": {
     "type": "git",
@@ -28,11 +28,12 @@
     "test": "node test/run.js"
   },
   "dependencies": {
-    "commander": "~2.0.0",
+    "commander": "~2.1.0",
     "esprima": "git://github.com/ariya/esprima.git#harmony",
-    "ast-types": ">= 0.3.8",
-    "recast": "~0.4.23",
-    "private": "~0.0.5"
+    "ast-types": ">= 0.3.11",
+    "recast": "~0.5.2",
+    "private": "~0.1.0",
+    "defs": "~0.6.2"
   },
   "devDependencies": {
     "mocha": "~1.13.0",

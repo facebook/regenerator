@@ -3,18 +3,20 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
+ * additional grant of patent rights can be found in the PATENTS file in
+ * the same directory.
  */
 
 var assert = require("assert");
 var path = require("path");
 var fs = require("fs");
 var transform = require("./lib/visit").transform;
-var guessTabWidth = require("./lib/util").guessTabWidth;
+var utils = require("./lib/util");
 var recast = require("recast");
 var esprimaHarmony = require("esprima");
 var genFunExp = /\bfunction\s*\*/;
+var blockBindingExp = /\b(let|const)\s+/;
 
 assert.ok(
   /harmony/.test(esprimaHarmony.version),
@@ -22,11 +24,10 @@ assert.ok(
 );
 
 function regenerator(source, options) {
-  if (!options) {
-    options = {
-      includeRuntime: false
-    };
-  }
+  options = utils.defaults(options || {}, {
+    includeRuntime: false,
+    supportBlockBinding: true
+  });
 
   var runtime = options.includeRuntime ? fs.readFileSync(
     regenerator.runtime.dev, "utf-8"
@@ -36,16 +37,53 @@ function regenerator(source, options) {
     return runtime + source; // Shortcut: no generators to transform.
   }
 
+  var runtimeBody = recast.parse(runtime, {
+    sourceFileName: regenerator.runtime.dev
+  }).program.body;
+
+  var supportBlockBinding = !!options.supportBlockBinding;
+  if (supportBlockBinding) {
+    if (!blockBindingExp.test(source)) {
+      supportBlockBinding = false;
+    }
+  }
+
   var recastOptions = {
-    tabWidth: guessTabWidth(source),
+    tabWidth: utils.guessTabWidth(source),
     // Use the harmony branch of Esprima that installs with regenerator
     // instead of the master branch that recast provides.
-    esprima: esprimaHarmony
+    esprima: esprimaHarmony,
+    range: supportBlockBinding
   };
 
-  var ast = recast.parse(source, recastOptions);
-  var es5 = recast.print(transform(ast), recastOptions);
-  return runtime + es5;
+  var recastAst = recast.parse(source, recastOptions);
+  var ast = recastAst.program;
+
+  // Transpile let/const into var declarations.
+  if (supportBlockBinding) {
+    var defsResult = require("defs")(ast, {
+      ast: true,
+      disallowUnknownReferences: false,
+      disallowDuplicated: false,
+      disallowVars: false,
+      loopClosures: "iife"
+    });
+
+    if (defsResult.errors) {
+      throw new Error(defsResult.errors.join("\n"))
+    }
+  }
+
+  recastAst.program = transform(ast);
+
+  // Include the runtime by modifying the AST rather than by concatenating
+  // strings. This technique will allow for more accurate source mapping.
+  if (options.includeRuntime) {
+    var body = recastAst.program.body;
+    body.unshift.apply(body, runtimeBody);
+  }
+
+  return recast.print(recastAst, recastOptions).code;
 }
 
 // To modify an AST directly, call require("regenerator").transform(ast).
