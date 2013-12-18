@@ -1079,7 +1079,8 @@ describe("for-of loop usage", function () {
       arr
     );
   });
-})
+});
+
 describe("block binding", function() {
   it("should translate block binding correctly", function() {
     "use strict";
