@@ -187,6 +187,7 @@
       this.next = 0;
       this.sent = void 0;
       this.tryStack = [];
+      this.throwStack = [];
       this.done = false;
       this.delegate = null;
 
@@ -202,10 +203,10 @@
     stop: function() {
       this.done = true;
 
-      if (hasOwn.call(this, "thrown")) {
-        var thrown = this.thrown;
-        delete this.thrown;
-        throw thrown;
+      if (this.throwStack.length > 0) {
+        var top = this.throwStack.pop();
+        this.throwStack.length = 0;
+        throw top;
       }
 
       return this.rval;
@@ -261,7 +262,7 @@
       }
 
       // Dispatch the exception to the "end" location by default.
-      this.thrown = exception;
+      this.throwStack.push(exception);
       this.next = "end";
 
       for (var i = this.tryStack.length - 1; i >= 0; --i) {
