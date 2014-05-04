@@ -2,7 +2,7 @@
   "name": "regenerator",
   "version": "0.4.8",
   "description": "Source transformer enabling ECMAScript 6 generator functions (yield) in JavaScript-of-today (ES5)",
-  "main": "./runtime/min.js",
+  "main": "runtime/min.js",
   "keywords": [
     "generator",
     "yield",
