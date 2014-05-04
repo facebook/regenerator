@@ -4,7 +4,6 @@
   "description": "Source transformer enabling ECMAScript 6 generator functions (yield) in JavaScript-of-today (ES5)",
   "main": [ 
     "runtime/min.js",
-    "runtime/dev.js"
   ],
   "keywords": [
     "generator",
