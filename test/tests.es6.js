@@ -1355,6 +1355,37 @@ describe("new expressions", function() {
   });
 });
 
+describe("for-of loop usage", function () {
+  function* gen(arr) {
+    for (var item of arr) {
+      yield item;
+    }
+  }
+
+  it("should get each item", function () {
+    var arr = [1,2,3,4];
+    var i = 0;
+    arr.next = function () {
+        var ret = {
+            done: false,
+            value: undefined
+        };
+        if (i < this.length) {
+            ret.value = this[i];
+        } else {
+            ret.done = true;
+        }
+        i++;
+        return ret;
+    }
+
+    check(
+      gen(arr),
+      arr
+    );
+  });
+});
+
 describe("block binding", function() {
   it("should translate block binding correctly", function() {
     "use strict";
