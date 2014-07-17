@@ -4,16 +4,55 @@
 var options = require("commander")
   .version(require("../package.json").version)
   .usage("[options] <file>")
+  .option("-o --out <dir>", "When taking a directory as input, this is the output directory")
   .option("-r, --include-runtime", "Prepend the runtime to the output.")
   .parse(process.argv);
 
 var file = options.args[0];
-if (typeof file !== "string") {
+if (typeof file !== "string") return error();
+
+var fs = require("fs");
+var read = fs.readFileSync;
+var write = fs.writeFileSync;
+var regenerator = require("../main");
+
+var stat = fs.statSync(file);
+
+if (stat.isDirectory()) {
+  if (!options.out) {
+    return error("An output directory is required when taking an input directory");
+  }
+
+  options.includeRuntime = true; // implied option
+
+  var path = require("path");
+  var glob = require("glob").sync;
+  var mkdir = require("mkdirp").sync;
+
+  var files = glob("*.js", { cwd: file });
+
+  var dest = options.out;
+  delete options.out;
+
+  files.forEach(function (src) {
+    var input = path.join(file, src);
+    var output = path.join(dest, src);
+
+    mkdir(path.dirname(output));
+    write(output, processFile(input));
+  });
+} else {
+  process.stdout.write(processFile(file));
+}
+
+
+function processFile(file) {
+  // note: `regenerator` will ignore any unknown options anyway
+  return regenerator(read(file, "utf-8"), options);
+}
+
+function error(msg) {
+  if (msg) console.error(msg);
   options.outputHelp();
   process.exit(-1);
 }
-
-process.stdout.write(require("../main")(
-  require("fs").readFileSync(file, "utf-8"),
-  options // note: `regenerator` will ignore any unknown options anyway
-));
