@@ -60,7 +60,7 @@ CodeMirror.on(input.doc, "change", function(instance) {
   }, delayMS);
 });
 
-function toggleComparison(a) {
+function toggleComparison(event) {
   var ul = document.getElementById("comparison");
   ul.setAttribute("class", ul.className.match(/\bhidden\b/) ? "" : "hidden");
 
@@ -68,9 +68,12 @@ function toggleComparison(a) {
   tn.nodeValue = tn.nodeValue.replace(/^\s*([\.:])/, function(_, punctuation) {
     return punctuation === "." ? ":" : ".";
   });
+  if (event && event.preventDefault) {
+    event.preventDefault();
+  }
 }
 
-function reportBug() {
+function reportBug(event) {
   var doc = document;
   var form = doc.createElement("form");
 
@@ -98,12 +101,18 @@ function reportBug() {
   document.body.appendChild(form);
   form.submit();
   form.parentNode.removeChild(form);
+  if (event && event.preventDefault) {
+    event.preventDefault();
+  }
 }
 
-function evaluateOutput() {
+function evaluateOutput(event) {
   var script = doc.createElement("script");
   script.appendChild(doc.createTextNode(output.getValue()));
   head.appendChild(script);
+  if (event && event.preventDefault) {
+    event.preventDefault();
+  }
 }
 
 CodeMirror.on(document, "keydown", function(event) {
@@ -112,3 +121,24 @@ CodeMirror.on(document, "keydown", function(event) {
     evaluateOutput();
   }
 });
+
+(function() {
+  var clickableElementsEvents = {
+    '#toggleComparison': toggleComparison,
+    '#reportBug': reportBug,
+    '#evaluateOutput': evaluateOutput
+    
+  };
+  var element, key, eventHandler;
+  for (key in clickableElementsEvents) {
+    if (Object.prototype.hasOwnProperty.call(clickableElementsEvents, key)) {
+      element = document.querySelector(key);
+      eventHandler = clickableElementsEvents[key];
+      if (element.addEventListener) {
+        element.addEventListener('click', eventHandler, false);
+      } else if (element.attachEvent) { // Greetings for IE8
+        element.attachEvent('onclick', eventHandler);
+      }
+    }
+  }
+}());
