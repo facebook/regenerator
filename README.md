@@ -55,6 +55,12 @@ ast = require("regenerator").transform(ast);
 var es5Source = recast.print(ast);
 ```
 
+Caveats
+===
+If you mention the `arguments` object in you generator it will lead to unoptemizable code. You could instead use a wrapper function or another preprocessor for rest parameter support.
+
+For more information and background see issues [#131][] and [#132][].
+
 How can you get involved?
 ---
 
@@ -72,3 +78,6 @@ If you're feeling especially brave, you are more than welcome to dive into
 the transformer code and fix the bug(s) yourself, but I must warn you that
 the code could really benefit from [better implementation
 comments](https://github.com/facebook/regenerator/issues/7).
+
+[#131]: /facebook/regenerator/issues/131
+[#132]: /facebook/regenerator/issues/132
