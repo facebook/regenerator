@@ -25,7 +25,8 @@
   "main": "main.js",
   "bin": "bin/regenerator",
   "scripts": {
-    "test": "node test/run.js"
+    "test": "node test/run.js",
+    "test-cov": "istanbul cover test/run.js"
   },
   "dependencies": {
     "commoner": "~0.10.0",
@@ -36,6 +37,7 @@
     "defs": "~1.1.0"
   },
   "devDependencies": {
+    "istanbul": "~0.3.4",
     "mocha": "~1.21.4",
     "promise": "~6.0.1",
     "semver": "~4.0.3"
