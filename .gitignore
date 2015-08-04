@@ -9,3 +9,5 @@ test/async.es5.js
 test/tests.browser.js
 
 .idea
+
+coverage
