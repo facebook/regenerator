@@ -1,14 +1,14 @@
+var regenerator = require("..");
+var babylon = require("babylon");
 var assert = require("assert");
-var recast = require("recast");
-var types = recast.types;
-var n = types.namedTypes;
-var transform = require("..").transform;
+var babel = require("babel-core");
+var t = require("babel-types");
 
 describe("_blockHoist nodes", function() {
   it("should be hoisted to the outer body", function() {
     var foo;
     var names = [];
-    var ast = recast.parse([
+    var ast = babylon.parse([
       "function *foo(doNotHoistMe, hoistMe) {",
       "  var sent = yield doNotHoistMe();",
       "  hoistMe();",
@@ -18,14 +18,14 @@ describe("_blockHoist nodes", function() {
     ].join("\n"));
 
     var hoistMeStmt = ast.program.body[0].body.body[1];
-    n.ExpressionStatement.assert(hoistMeStmt);
-    n.CallExpression.assert(hoistMeStmt.expression);
-    n.Identifier.assert(hoistMeStmt.expression.callee);
+    t.assertExpressionStatement(hoistMeStmt);
+    t.assertCallExpression(hoistMeStmt.expression);
+    t.assertIdentifier(hoistMeStmt.expression.callee);
     assert.strictEqual(hoistMeStmt.expression.callee.name, "hoistMe");
 
     hoistMeStmt._blockHoist = 1;
 
-    eval(recast.print(transform(ast)).code);
+    eval(babel.transformFromAst(ast, null, { plugins: [regenerator] }).code);
 
     assert.strictEqual(typeof foo, "function");
     assert.ok(regeneratorRuntime.isGeneratorFunction(foo));
