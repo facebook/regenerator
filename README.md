@@ -47,12 +47,12 @@ var es5SourceWithRuntime = require("regenerator").compile(es6Source, {
 }).code;
 ```
 
-AST transformation:
+Babel plugin:
 ```js
-var recast = require("recast");
-var ast = recast.parse(es6Source);
-ast = require("regenerator").transform(ast);
-var es5Source = recast.print(ast);
+var babel = require("babel-core");
+var code = babel.transform(es6Source, {
+  plugins: [require("generator")]
+}).code;
 ```
 
 How can you get involved?

@@ -139,17 +139,6 @@ enqueue("./bin/regenerator", [
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
-  "--disable-async",
-  "./test/async.es5.js"
-], true);
-
-enqueue("./bin/regenerator", [
-  "--include-runtime",
-  "--disable-async",
-  "./test/async.es5.js"
-], true);
-
 // Make sure we run the command-line tool on a file that does not need any
 // transformation, too.
 
@@ -159,17 +148,6 @@ enqueue("./bin/regenerator", [
 
 enqueue("./bin/regenerator", [
   "--include-runtime",
-  "./test/nothing-to-transform.js"
-], true);
-
-enqueue("./bin/regenerator", [
-  "--disable-async",
-  "./test/nothing-to-transform.js"
-], true);
-
-enqueue("./bin/regenerator", [
-  "--include-runtime",
-  "--disable-async",
   "./test/nothing-to-transform.js"
 ], true);
 

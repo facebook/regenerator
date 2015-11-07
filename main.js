@@ -8,154 +8,27 @@
  * the same directory.
  */
 
-var assert = require("assert");
-var path = require("path");
-var fs = require("fs");
-var through = require("through");
-var transform = require("./lib/visit").transform;
-var utils = require("./lib/util");
-var recast = require("recast");
-var types = recast.types;
-var genOrAsyncFunExp = /\bfunction\s*\*|\basync\b/;
-var blockBindingExp = /\b(let|const)\s+/;
+var asyncFunctionSyntax = require("babel-plugin-syntax-async-functions");
+var blockScopingPlugin = require("babel-plugin-transform-es2015-block-scoping");
+var forOfPlugin = require("babel-plugin-transform-es2015-for-of");
+var babel = require("babel-core");
 
-function exports(file, options) {
-  var data = [];
-  return through(write, end);
+var regenerator = module.exports = function() {
+  return require("./lib/visit");
+};
 
-  function write(buf) {
-    data.push(buf);
-  }
+regenerator.compile = function(code, opts) {
+  // todo: includeRuntime
+  return babel.transform(code, buildBabelOptions(opts));
+};
 
-  function end() {
-    this.queue(compile(data.join(""), options).code);
-    this.queue(null);
-  }
-}
+regenerator.transform = function (ast, opts) {
+  return babel.transformFromAst(ast, null, buildBabelOptions(opts));
+};
 
-// To get a writable stream for use as a browserify transform, call
-// require("regenerator")().
-module.exports = exports;
-
-// To include the runtime globally in the current node process, call
-// require("regenerator").runtime().
-function runtime() {
-  require("./runtime");
-}
-exports.runtime = runtime;
-runtime.path = path.join(__dirname, "runtime.js");
-
-function compile(source, options) {
-  options = normalizeOptions(options);
-
-  if (!genOrAsyncFunExp.test(source)) {
-    return {
-      // Shortcut: no generators or async functions to transform.
-      code: (options.includeRuntime === true ? fs.readFileSync(
-        path.join(__dirname, "runtime.js"), "utf-8"
-      ) + "\n" : "") + source
-    };
-  }
-
-  var recastOptions = getRecastOptions(options);
-  var ast = recast.parse(source, recastOptions);
-  var nodePath = new types.NodePath(ast);
-  var programPath = nodePath.get("program");
-
-  if (shouldVarify(source, options)) {
-    // Transpile let/const into var declarations.
-    varifyAst(programPath.node);
-  }
-
-  transform(programPath, options);
-
-  return recast.print(nodePath, recastOptions);
-}
-
-function normalizeOptions(options) {
-  options = utils.defaults(options || {}, {
-    includeRuntime: false,
-    supportBlockBinding: true
-  });
-
-  if (!options.esprima) {
-    options.esprima = require("esprima-fb");
-  }
-
-  assert.ok(
-    /harmony/.test(options.esprima.version),
-    "Bad esprima version: " + options.esprima.version
-  );
-
-  return options;
-}
-
-function getRecastOptions(options) {
-  var recastOptions = {
-    range: true
+function buildBabelOptions(opts) {
+  return {
+    plugins: [regenerator, blockScopingPlugin, asyncFunctionSyntax, forOfPlugin],
+    sourceType: "script"
   };
-
-  function copy(name) {
-    if (name in options) {
-      recastOptions[name] = options[name];
-    }
-  }
-
-  copy("esprima");
-  copy("sourceFileName");
-  copy("sourceMapName");
-  copy("inputSourceMap");
-  copy("sourceRoot");
-
-  return recastOptions;
 }
-
-function shouldVarify(source, options) {
-  var supportBlockBinding = !!options.supportBlockBinding;
-  if (supportBlockBinding) {
-    if (!blockBindingExp.test(source)) {
-      supportBlockBinding = false;
-    }
-  }
-
-  return supportBlockBinding;
-}
-
-function varify(source, options) {
-  var recastOptions = getRecastOptions(normalizeOptions(options));
-  var ast = recast.parse(source, recastOptions);
-  varifyAst(ast.program);
-  return recast.print(ast, recastOptions).code;
-}
-
-function varifyAst(ast) {
-  types.namedTypes.Program.assert(ast);
-
-  var defsResult = require("defs")(ast, {
-    ast: true,
-    disallowUnknownReferences: false,
-    disallowDuplicated: false,
-    disallowVars: false,
-    loopClosures: "iife"
-  });
-
-  if (defsResult.errors) {
-    throw new Error(defsResult.errors.join("\n"))
-  }
-
-  return ast;
-}
-
-// Convenience for just translating let/const to var declarations.
-exports.varify = varify;
-
-// Allow packages that depend on Regenerator to use the same copy of
-// ast-types, in case multiple versions are installed by NPM.
-exports.types = types;
-
-// Transforms a string of source code, returning the { code, map? } result
-// from recast.print.
-exports.compile = compile;
-
-// To modify an AST directly, call require("regenerator").transform(ast).
-exports.transform = transform;
