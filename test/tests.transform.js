@@ -45,3 +45,36 @@ describe("_blockHoist nodes", function() {
     assert.deepEqual(names, ["hoistMe", "doNotHoistMe", "oyez"]);
   });
 });
+
+describe("awaiting result", function() {
+  it("should not use unnecessary cases", function() {
+    var parsed = recast.parse([
+      "async function foo(bar) {",
+      "  return await bar();",
+      "}"
+    ].join("\n"));
+
+    var afterTransformation = transform(parsed);
+
+    // Dive into transformed AST and confirm the number of case statements used
+    // in the inner FSM.
+    var returnStmt = afterTransformation.program.body[0].body.body[0];
+    assert.deepEqual(returnStmt.type, "ReturnStatement");
+    var whileStmt = returnStmt.argument.arguments[0].body.body[0];
+    assert.deepEqual(whileStmt.type, "WhileStatement");
+    var switchStmt = whileStmt.body;
+    assert.deepEqual(switchStmt.type, "SwitchStatement");
+    assert.deepEqual(switchStmt.cases.length, 3);
+
+    // Sense-check the behaviour of this function
+    eval(recast.print(parsed).code);
+    assert.strictEqual(typeof foo, "function");
+
+    var resultPromise = foo(function bar() {
+      return "finished";
+    });
+    return resultPromise.then(function (promiseResolution) {
+      assert.strictEqual(promiseResolution, "finished");
+    });
+  });
+});
