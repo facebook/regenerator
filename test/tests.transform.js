@@ -47,7 +47,7 @@ describe("_blockHoist nodes", function() {
 });
 
 describe("awaiting result", function() {
-  it("should not use unnecessary cases", function() {
+  it("should not use unnecessary cases when returning", function() {
     var parsed = recast.parse([
       "async function foo(bar) {",
       "  return await bar();",
@@ -64,6 +64,9 @@ describe("awaiting result", function() {
     assert.deepEqual(whileStmt.type, "WhileStatement");
     var switchStmt = whileStmt.body;
     assert.deepEqual(switchStmt.type, "SwitchStatement");
+    // 1. setup
+    // 2. returning await
+    // 3. `end`
     assert.deepEqual(switchStmt.cases.length, 3);
 
     // Sense-check the behaviour of this function
@@ -75,6 +78,36 @@ describe("awaiting result", function() {
     });
     return resultPromise.then(function (promiseResolution) {
       assert.strictEqual(promiseResolution, "finished");
+    });
+  });
+
+  it("should not use unnecessary cases when throwing", function() {
+    var parsed = recast.parse([
+      "async function foo() {",
+      "  throw new Error();",
+      "}"
+    ].join("\n"));
+
+    var afterTransformation = transform(parsed);
+
+    // Dive into transformed AST and confirm the number of case statements used
+    // in the inner FSM.
+    var returnStmt = afterTransformation.program.body[0].body.body[0];
+    assert.deepEqual(returnStmt.type, "ReturnStatement");
+    var whileStmt = returnStmt.argument.arguments[0].body.body[0];
+    assert.deepEqual(whileStmt.type, "WhileStatement");
+    var switchStmt = whileStmt.body;
+    assert.deepEqual(switchStmt.type, "SwitchStatement");
+    // 1. setup and throw
+    // 2. end
+    assert.deepEqual(switchStmt.cases.length, 2);
+
+    // Sense-check the behaviour of this function
+    eval(recast.print(parsed).code);
+    assert.strictEqual(typeof foo, "function");
+
+    return foo().catch(function (error) {
+      assert(error instanceof Error);
     });
   });
 });
