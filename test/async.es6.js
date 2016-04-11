@@ -9,6 +9,9 @@
  */
 
 var assert = require("assert");
+var asyncIteratorSymbol = typeof Symbol === "function"
+  && Symbol.asyncIterator
+  || "@@asyncIterator";
 
 describe("async functions and await expressions", function() {
   Promise = require("promise");
@@ -253,6 +256,19 @@ describe("async functions and await expressions", function() {
         done();
       }).catch(done);
     });
+  });
+});
+
+describe("@@asyncIterator", function() {
+  it("is defined on AsyncIterator.prototype and returns this", function() {
+    async function *gen(arg) {
+      return arg
+    }
+
+    var iter = gen("argument");
+    assert.ok(!iter.hasOwnProperty(asyncIteratorSymbol));
+    assert.ok(Object.getPrototypeOf(iter).hasOwnProperty(asyncIteratorSymbol));
+    assert.strictEqual(iter, iter[asyncIteratorSymbol]());
   });
 });
 

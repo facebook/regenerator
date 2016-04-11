@@ -15,6 +15,7 @@
   var undefined; // More compressible than void 0.
   var $Symbol = typeof Symbol === "function" ? Symbol : {};
   var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
   var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
 
   var inModule = typeof module === "object";
@@ -211,6 +212,10 @@
   }
 
   defineIteratorMethods(AsyncIterator.prototype);
+
+  AsyncIterator.prototype[asyncIteratorSymbol] = function() {
+    return this;
+  };
 
   // Note that simple async functions are implemented on top of
   // AsyncIterator objects; they just return a Promise for the value of
