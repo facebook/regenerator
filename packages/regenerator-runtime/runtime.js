@@ -133,7 +133,7 @@
     this.arg = arg;
   }
 
-  function AsyncIterator(generator) {
+  function AsyncIterator(generator,Promise) {
     function invoke(method, arg, resolve, reject) {
       var record = tryCatch(generator[method], generator, arg);
       if (record.type === "throw") {
@@ -215,9 +215,10 @@
   // Note that simple async functions are implemented on top of
   // AsyncIterator objects; they just return a Promise for the value of
   // the final result produced by the iterator.
-  runtime.async = function(innerFn, outerFn, self, tryLocsList) {
+  runtime.async = function(innerFn, outerFn, self, tryLocsList, Promise) {
     var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList)
+      wrap(innerFn, outerFn, self, tryLocsList),
+      Promise
     );
 
     return runtime.isGeneratorFunction(outerFn)
