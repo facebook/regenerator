@@ -23,6 +23,26 @@ describe("async functions and await expressions", function() {
     it("should have a .wrap method", function() {
       assert.strictEqual(typeof regeneratorRuntime.wrap, "function");
     });
+	
+    it("should use local scope's promise", function() {
+        var global = Function("return this")();
+        function Promise(fn){
+    
+        }
+        Promise.prototype = {
+          then: function(fn){
+            return new Promise();
+          }
+        }
+        
+        async function myFunc(){
+        
+        }
+        var result = myFunc();
+        var proto = Object.getPrototypeOf(result);
+        assert.ok(proto == Promise.prototype);
+        assert.ok(proto != global.Promise.prototype);
+    });
   });
 
   describe("Promise", function() {
