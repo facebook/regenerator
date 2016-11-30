@@ -1,0 +1,75 @@
+body {
+  background-image: url("yield_ahead.200px.png");
+  background-position: 25px 25px;
+  background-repeat: no-repeat;
+  font-family: sans-serif;
+}
+
+#content {
+  position: relative;
+  margin: 0 250px 40px;
+  min-width: 600px;
+  max-width: 1024px;
+}
+
+h1, h2 {
+  letter-spacing: -1px;
+}
+
+.CodeMirror {
+  height: auto;
+}
+
+#sandbox {
+}
+
+#inputWrapper, #outputWrapper {
+  width: 50%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+#inputWrapper {
+  float: left;
+  padding-right: 20px;
+}
+
+#outputWrapper {
+  float: right;
+  padding-left: 20px;
+}
+
+.CodeMirror-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.hint {
+  color: #999;
+  float: right;
+}
+
+.hidden {
+  display: none;
+}
+
+#attribution, #copyright {
+  position: fixed;
+  bottom: 25px;
+  max-width: 250px;
+  border: none;
+}
+
+#attribution {
+  left: 25px;
+}
+
+#copyright {
+  right: 25px;
+}
+
+.clearfix:after {
+  clear: both;
+  content: "";
+  display: table;
+}
