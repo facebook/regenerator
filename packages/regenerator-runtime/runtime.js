@@ -96,9 +96,13 @@
   if (NativeIteratorPrototype &&
       NativeIteratorPrototype !== Op &&
       hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
+    // This environment has a native %IteratorPrototype%; use it instead of the
+    // polyfill unless it's the broken Firefox IteratorPrototype. See
+    // https://github.com/facebook/regenerator/issues/274 for more details.
+    var _n = NativeIteratorPrototype[iteratorSymbol].call(NativeIteratorPrototype);
+    if (!_n || !_n.next || _n.next.name !== 'LegacyIteratorNext') {
+      IteratorPrototype = NativeIteratorPrototype;
+    }
   }
 
   var Gp = GeneratorFunctionPrototype.prototype =
