@@ -96,13 +96,9 @@
   if (NativeIteratorPrototype &&
       NativeIteratorPrototype !== Op &&
       hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead of the
-    // polyfill unless it's the broken Firefox IteratorPrototype. See
-    // https://github.com/facebook/regenerator/issues/274 for more details.
-    var _n = NativeIteratorPrototype[iteratorSymbol].call(NativeIteratorPrototype);
-    if (!_n || !_n.next || _n.next.name !== 'LegacyIteratorNext') {
-      IteratorPrototype = NativeIteratorPrototype;
-    }
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
   }
 
   var Gp = GeneratorFunctionPrototype.prototype =
@@ -395,6 +391,15 @@
   defineIteratorMethods(Gp);
 
   Gp[toStringTagSymbol] = "Generator";
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
 
   Gp.toString = function() {
     return "[object Generator]";
