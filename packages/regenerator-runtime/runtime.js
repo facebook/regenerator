@@ -144,10 +144,14 @@
 
   // Within the body of any async function, `await x` is transformed to
   // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // `value instanceof __Awaitable` to determine if the yielded value is
   // meant to be awaited.
   runtime.awrap = function(arg) {
-    return { __await: arg };
+    return new __Awaitable(arg)
+  };
+
+  function __Awaitable(value) {
+    this.value = value;
   };
 
   function AsyncIterator(generator) {
@@ -158,10 +162,8 @@
       } else {
         var result = record.arg;
         var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return Promise.resolve(value.__await).then(function(value) {
+        if (value instanceof __Awaitable) {
+          return Promise.resolve(value.value).then(function(value) {
             invoke("next", value, resolve, reject);
           }, function(err) {
             invoke("throw", err, resolve, reject);
