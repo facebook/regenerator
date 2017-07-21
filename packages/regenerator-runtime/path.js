@@ -1,4 +1,4 @@
 exports.path = require("path").join(
   __dirname,
-  "runtime.js"
+  "lib/index.js"
 );

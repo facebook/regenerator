@@ -9,6 +9,7 @@
  */
 
 var assert = require("assert");
+var regeneratorRuntime = require("regenerator-runtime");
 var runningInTranslation = /\.wrap\(/.test(function*(){});
 var shared = require("./shared.js");
 var Symbol = shared.Symbol;
@@ -24,12 +25,6 @@ function raise(argument) {
 }
 
 describe("regeneratorRuntime", function() {
-  it("should be defined globally", function() {
-    var global = Function("return this")();
-    assert.ok("regeneratorRuntime" in global);
-    assert.strictEqual(global.regeneratorRuntime, regeneratorRuntime);
-  });
-
   it("should have a .wrap method", function() {
     assert.strictEqual(typeof regeneratorRuntime.wrap, "function");
   });

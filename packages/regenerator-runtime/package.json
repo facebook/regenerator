@@ -3,7 +3,8 @@
   "author": "Ben Newman <bn@cs.stanford.edu>",
   "description": "Runtime for Regenerator-compiled generator and async functions.",
   "version": "0.11.0",
-  "main": "runtime-module.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
   "keywords": [
     "regenerator",
     "runtime",
@@ -14,5 +15,24 @@
     "type": "git",
     "url": "https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.8.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.18.0",
+    "babel-plugin-transform-es2015-classes": "^6.18.0",
+    "babel-plugin-transform-es2015-computed-properties": "^6.24.1",
+    "cross-env": "^5.0.1",
+    "npm-run-all": "^4.0.2",
+    "rimraf": "^2.6.1",
+    "rollup": "^0.45.2",
+    "rollup-plugin-babel": "^2.7.1"
+  },
+  "scripts": {
+    "prebuild": "rimraf lib es",
+    "build:cjs": "cross-env BABEL_ENV=cjs rollup -c -i src/index.js -o lib/index.js",
+    "build:es": "cross-env BABEL_ENV=es rollup -c -i src/index.js -o es/index.js",
+    "build": "run-p build:**"
+  }
 }
