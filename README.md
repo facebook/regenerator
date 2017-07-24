@@ -23,6 +23,7 @@ cd path/to/node_modules
 git clone git://github.com/facebook/regenerator.git
 cd regenerator
 npm install .
+npm run bootstrap
 npm test
 ```
 
