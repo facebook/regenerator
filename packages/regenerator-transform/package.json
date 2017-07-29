@@ -16,7 +16,8 @@
   },
   "license": "BSD",
   "scripts": {
-    "prepublish": "babel src/ --out-dir lib/"
+    "build": "babel src/ --out-dir lib/",
+    "prepublish": "npm run build"
   },
   "babel": {
     "presets": [

@@ -46,7 +46,6 @@ describe("simple argument yielder", function() {
     function *gen(x) {
       yield x;
     }
-
     check(gen("oyez"), ["oyez"]);
     check(gen("foo", "bar"), ["foo"]);
   });

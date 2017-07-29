@@ -49,7 +49,7 @@ function getRuntimeCode() {
 }
 
 var transformOptions = {
-  presets: [require("regenerator-preset")],
+  presets: [["regenerator-preset", { strict: false }]],
   parserOpts: {
     sourceType: "module",
     allowImportExportEverywhere: true,

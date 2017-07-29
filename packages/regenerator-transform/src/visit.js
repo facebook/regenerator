@@ -16,8 +16,17 @@ import { hoist } from "./hoist";
 import { Emitter } from "./emit";
 import replaceShorthandObjectMethod from "./replaceShorthandObjectMethod";
 import * as util from "./util";
+import prv from "private";
 
-exports.visitor = {
+const getMarkInfo = prv.makeAccessor();
+
+export const pre = function (file) {
+  this.setDynamic("regeneratorRuntime", function () {
+    return file.addImport("regenerator-runtime", "*", "regeneratorRuntime");
+  })
+};
+
+export const visitor = {
   Function: {
     exit: function(path, state) {
       let node = path.node;
@@ -49,7 +58,7 @@ exports.visitor = {
       let bodyBlockPath = path.get("body");
 
       if (node.async) {
-        bodyBlockPath.traverse(awaitVisitor);
+        bodyBlockPath.traverse(awaitVisitor, { parentState: state });
       }
 
       bodyBlockPath.traverse(functionSentVisitor, {
@@ -82,7 +91,7 @@ exports.visitor = {
         bodyBlockPath.node.body = innerBody;
       }
 
-      let outerFnExpr = getOuterFnExpr(path);
+      let outerFnExpr = getOuterFnExpr(path, state);
       // Note that getOuterFnExpr has the side-effect of ensuring that the
       // function has a name (so node.id will always be an Identifier), even
       // if a temporary name has to be synthesized.
@@ -104,7 +113,7 @@ exports.visitor = {
         ));
       }
 
-      let emitter = new Emitter(contextId);
+      let emitter = new Emitter(contextId, state);
       emitter.explode(path.get("body"));
 
       if (vars && vars.declarations.length > 0) {
@@ -126,7 +135,7 @@ exports.visitor = {
       }
 
       let wrapCall = t.callExpression(
-        util.runtimeProperty(node.async ? "async" : "wrap"),
+        util.runtimeProperty(state, node.async ? "async" : "wrap"),
         wrapArgs
       );
 
@@ -150,7 +159,7 @@ exports.visitor = {
       }
 
       if (wasGeneratorFunction && t.isExpression(node)) {
-        util.replaceWithOrRemove(path, t.callExpression(util.runtimeProperty("mark"), [node]))
+        util.replaceWithOrRemove(path, t.callExpression(util.runtimeProperty(state, "mark"), [node]))
         path.addComment("leading", "#__PURE__");
       }
 
@@ -166,7 +175,7 @@ exports.visitor = {
 // used to refer reliably to the function object from inside the function.
 // This expression is essentially a replacement for arguments.callee, with
 // the key advantage that it works in strict mode.
-function getOuterFnExpr(funPath) {
+function getOuterFnExpr(funPath, state) {
   let node = funPath.node;
   t.assertFunction(node);
 
@@ -179,15 +188,13 @@ function getOuterFnExpr(funPath) {
   if (node.generator && // Non-generator functions don't need to be marked.
       t.isFunctionDeclaration(node)) {
     // Return the identifier returned by runtime.mark(<node.id>).
-    return getMarkedFunctionId(funPath);
+    return getMarkedFunctionId(funPath, state);
   }
 
   return node.id;
 }
 
-const getMarkInfo = require("private").makeAccessor();
-
-function getMarkedFunctionId(funPath) {
+function getMarkedFunctionId(funPath, state) {
   const node = funPath.node;
   t.assertIdentifier(node.id);
 
@@ -214,7 +221,7 @@ function getMarkedFunctionId(funPath) {
   // Get a new unique identifier for our marked variable.
   const markedId = blockPath.scope.generateUidIdentifier("marked");
   const markCallExp = t.callExpression(
-    util.runtimeProperty("mark"),
+    util.runtimeProperty(state, "mark"),
     [node.id]
   );
 
@@ -284,7 +291,7 @@ let awaitVisitor = {
     // can distinguish between awaited and merely yielded values.
     util.replaceWithOrRemove(path, t.yieldExpression(
       t.callExpression(
-        util.runtimeProperty("awrap"),
+        util.runtimeProperty(this.parentState, "awrap"),
         [argument]
       ),
       false

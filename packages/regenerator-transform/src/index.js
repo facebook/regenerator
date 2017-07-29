@@ -7,12 +7,9 @@
  * additional grant of patent rights can be found in the PATENTS file in
  * the same directory.
  */
+import * as plugin from './visit';
 
 export default function (context) {
-  const plugin = {
-    visitor: require("./visit").visitor,
-  };
-
   // Some presets manually call child presets, but fail to pass along the
   // context object. Out of an abundance of caution, we verify that it
   // exists first to avoid causing unnecessary breaking changes.
