@@ -86,10 +86,10 @@ exports.visitor = {
 
       // it's possible that getOuterFnExprPath removes our current path so we
       // reassign with the return value
-      path = getOuterFnExprPath(path)
+      path = getOuterFnExprPath(path);
       // and also reassign node as well
-      node = path.node
-      let outerFnExpr = node.id
+      node = path.node;
+      let outerFnExpr = node.id;
 
       // Note that getOuterFnExprPath has the side-effect of ensuring that the
       // function has a name (so node.id will always be an Identifier), even
@@ -187,7 +187,7 @@ function getOuterFnExprPath(funPath) {
   let outerFnExpr = node.id
 
   if (node.generator && // Non-generator functions don't need to be marked.
-    t.isFunctionDeclaration(node)) {
+      t.isFunctionDeclaration(node)) {
     let pp = funPath.findParent(function(path) {
       return path.isProgram() || path.isBlockStatement();
     });
