@@ -190,21 +190,21 @@ enqueue("mocha", [
 
 // Run command-line tool with available options to make sure it works.
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--disable-async",
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "--disable-async",
   "./test/async.es5.js"
@@ -213,21 +213,21 @@ enqueue("./bin/regenerator", [
 // Make sure we run the command-line tool on a file that does not need any
 // transformation, too.
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--disable-async",
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "--disable-async",
   "./test/nothing-to-transform.js"
@@ -237,21 +237,21 @@ enqueue("./bin/regenerator", [
 //
 //     You passed `path.replaceWith()` a falsy node, use `path.remove()` instead
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--disable-async",
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue("./bin/regenerator.js", [
   "--include-runtime",
   "--disable-async",
   "./test/replaceWith-falsy.js"

@@ -1,0 +1,6 @@
+{
+  "*.js": [
+    "prettier --trailing-comma es5 --write",
+    "git add"
+  ]
+}
