@@ -3,7 +3,50 @@ var recast = require("recast");
 var types = recast.types;
 var n = types.namedTypes;
 var transform = require("..").transform;
+describe("es6 exports", function() {
+  it("should work", function() {
+    var ast = recast.parse([
+      "export function *foo() {",
+      "  return 123;",
+      "}",
+      "export default function *bar() {",
+      "  return 123;",
+      "}",
+    ].join("\n"), {
+      parser: require("babylon")
+    });
 
+    const code = recast.print(transform(ast)).code;
+    // can't eval this because of the es6 module syntax so just search for our exports
+    assert.notStrictEqual(code.indexOf('export { foo };'), -1);
+    assert.notStrictEqual(code.indexOf('export default bar;'), -1);
+  })
+})
+
+describe("pure", function() {
+  xit("should work with a function expression", function() {
+    var ast = recast.parse('var a = function* foo(){};', {
+        parser: require("babylon")
+    });
+    const code = recast.print(transform(ast)).code;
+    assert.notStrictEqual(
+      code.indexOf(
+        'var a = /*#__PURE__*/regeneratorRuntime.mark(function foo() {'
+      ), -1
+    );
+  })
+  xit("should work with a function declaration", function() {
+    var ast = recast.parse('function* foo(){};', {
+      parser: require("babylon")
+    });
+    const code = recast.print(transform(ast)).code;
+    assert.notStrictEqual(
+      code.indexOf(
+        'var a = /*#__PURE__*/Object.defineProperty( /*#__PURE__*/regeneratorRuntime.mark'
+      ), -1
+    );
+  })
+})
 describe("_blockHoist nodes", function() {
   it("should be hoisted to the outer body", function() {
     var foo;

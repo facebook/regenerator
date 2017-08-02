@@ -84,8 +84,14 @@ exports.visitor = {
         bodyBlockPath.node.body = innerBody;
       }
 
-      let outerFnExpr = getOuterFnExpr(path);
-      // Note that getOuterFnExpr has the side-effect of ensuring that the
+      // it's possible that getOuterFnExprPath removes our current path so we
+      // reassign with the return value
+      path = getOuterFnExprPath(path);
+      // and also reassign node as well
+      node = path.node;
+      let outerFnExpr = node.id;
+
+      // Note that getOuterFnExprPath has the side-effect of ensuring that the
       // function has a name (so node.id will always be an Identifier), even
       // if a temporary name has to be synthesized.
       t.assertIdentifier(node.id);
@@ -152,7 +158,8 @@ exports.visitor = {
       }
 
       if (wasGeneratorFunction && t.isExpression(node)) {
-        util.replaceWithOrRemove(path, t.callExpression(util.runtimeProperty("mark"), [node]))
+        util.replaceWithOrRemove(path, t.callExpression(util.runtimeProperty("mark"), [node]));
+        path.addComment("leading", "#__PURE__");
       }
 
       // Generators are processed in 'exit' handlers so that regenerator only has to run on
@@ -163,11 +170,11 @@ exports.visitor = {
   }
 };
 
-// Given a NodePath for a Function, return an Expression node that can be
+// Given a NodePath for a Function, return a path to an Expression node that can be
 // used to refer reliably to the function object from inside the function.
 // This expression is essentially a replacement for arguments.callee, with
 // the key advantage that it works in strict mode.
-function getOuterFnExpr(funPath) {
+function getOuterFnExprPath(funPath) {
   let node = funPath.node;
   t.assertFunction(node);
 
@@ -177,32 +184,118 @@ function getOuterFnExpr(funPath) {
     node.id = funPath.scope.parent.generateUidIdentifier("callee");
   }
 
+  let outerFnExpr = node.id
+
   if (node.generator && // Non-generator functions don't need to be marked.
       t.isFunctionDeclaration(node)) {
-    let pp = funPath.findParent(function (path) {
+    let pp = funPath.findParent(function(path) {
       return path.isProgram() || path.isBlockStatement();
     });
 
     if (!pp) {
-      return node.id;
+      return funPath;
+    }
+    const parameters = funPath.node.params.map(function(param) {
+      return t.cloneDeep(param);
+    })
+
+    // turn our FunctionDeclaration into a FunctionExpression with a different
+    // name - our our eventual outerFnExpr needs to be identical to the original
+    // FunctionDeclaration name so that external calls work correctly, and we
+    // can't also use that name in our FunctionExpression because it would shadow
+    // the outerFnExpr in our wrapping scope
+    const functionExpression = t.functionExpression(
+      funPath.scope.generateUidIdentifierBasedOnNode(node.id),
+      parameters,
+      t.cloneDeep(funPath.node.body),
+      funPath.node.generator,
+      funPath.node.async
+    );
+
+    // in spite of the above, we want the resulting function's name property
+    // property to be the same as the original so we wrap the FunctionExpression
+    // with:
+    //   Object.defineProperty(functionExpression, 'name', { value: outerFnExpr.name }
+    // this way introspection / prototype chains work the way we'd expect
+    const memberExpression = t.memberExpression(
+      t.identifier('Object'),
+      t.identifier('defineProperty')
+    )
+
+    // create a new identifier based on our original node's id
+    outerFnExpr = t.identifier(node.id.name)
+
+    let decl
+
+    // set name on our functionExpression per the above comments
+    decl = t.variableDeclarator(
+      outerFnExpr,
+      t.callExpression(
+        memberExpression, [
+          functionExpression,
+          t.stringLiteral('name'),
+          t.objectExpression([
+            t.objectProperty(
+              t.stringLiteral('value'),
+              t.stringLiteral(outerFnExpr.name)
+            )
+          ])
+        ]
+      )
+    )
+
+    let markDecl = getRuntimeMarkDecl(pp)
+    t.assertVariableDeclaration(markDecl)
+
+    let declarations = markDecl.declarations;
+    // save our current index
+    let index = declarations.length
+
+    // this can change from pass to pass if something else is altering our body
+    // so we have to look it up every time :/
+    let declarationsIndex = pp.node.body.findIndex((p) => {
+      return t.isVariableDeclaration(p) && p.declarations === declarations;
+    })
+    assert(!isNaN(declarationsIndex));
+
+    // now push our new declaration into our list
+    declarations.push(decl)
+
+    // special case - handle node types that take FunctionDeclarations as
+    // arguments. not sure if there are more than these two, i couldn't find any
+    // in the docs?
+    if (t.isExportDefaultDeclaration(funPath.parentPath.node)) {
+      // export default function* foo() {}
+      funPath.parentPath.replaceWith(
+        t.exportDefaultDeclaration(outerFnExpr)
+      );
+    } else if (t.isExportNamedDeclaration(funPath.parentPath.node)) {
+      // export function* foo() {}
+      funPath.parentPath.replaceWith(
+        t.exportNamedDeclaration(
+          null,
+          [t.exportSpecifier(outerFnExpr, outerFnExpr)]
+        )
+      );
+    } else {
+      // otherwise we don't need the original function definition, so remove it
+      funPath.remove();
     }
 
-    let markDecl = getRuntimeMarkDecl(pp);
-    let markedArray = markDecl.declarations[0].id;
-    let funDeclIdArray = markDecl.declarations[0].init.callee.object;
-    t.assertArrayExpression(funDeclIdArray);
+    // assemble the path to our declarations
+    let bodyPathName = 'body.' + String(declarationsIndex) + '.declarations.' + String(index) + '.init';
+    let bodyPath = pp.get(bodyPathName);
 
-    let index = funDeclIdArray.elements.length;
-    funDeclIdArray.elements.push(node.id);
+    // mark our call to util.runtimeProperty("mark") as pure to enable tree-shaking
+    bodyPath.addComment("leading", "#__PURE__");
 
-    return t.memberExpression(
-      markedArray,
-      t.numericLiteral(index),
-      true
-    );
+    // our actual function path should point to our first declaration argument
+    funPath = bodyPath.get('arguments.0');
+
+    // mark our call to Object.defineProperty as pure to enable tree-shaking
+    funPath.addComment("leading", "#__PURE__");
   }
-
-  return node.id;
+  return funPath;
 }
 
 function getRuntimeMarkDecl(blockPath) {
@@ -214,19 +307,7 @@ function getRuntimeMarkDecl(blockPath) {
     return info.decl;
   }
 
-  info.decl = t.variableDeclaration("var", [
-    t.variableDeclarator(
-      blockPath.scope.generateUidIdentifier("marked"),
-      t.callExpression(
-        t.memberExpression(
-          t.arrayExpression([]),
-          t.identifier("map"),
-          false
-        ),
-        [util.runtimeProperty("mark")]
-      )
-    )
-  ]);
+  info.decl = t.variableDeclaration("var", []);
 
   blockPath.unshiftContainer("body", info.decl);
 

@@ -8,3 +8,5 @@ test/*.es5.js
 test/tests.browser.js
 
 .idea
+
+lerna-debug.log
