@@ -26,7 +26,7 @@
     "cross-env": "^5.0.1",
     "npm-run-all": "^4.0.2",
     "rimraf": "^2.6.1",
-    "rollup": "^0.45.2",
+    "rollup": "^0.46.2",
     "rollup-plugin-babel": "^2.7.1"
   },
   "scripts": {

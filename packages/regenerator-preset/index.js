@@ -13,11 +13,11 @@ module.exports = {
       require("babel-plugin-transform-es2015-arrow-functions"),
       require("babel-plugin-transform-es2015-block-scoping"),
       require("babel-plugin-transform-es2015-for-of"),
-      ["regenerator-transform", { globalRuntimeName: globalRuntimeName }]
+      [require("regenerator-transform"), { globalRuntimeName: globalRuntimeName }]
     ];
 
     if (modules) {
-      plugins.push(["babel-plugin-transform-es2015-modules-commonjs", { loose: loose, strict: strict }]);
+      plugins.push([require("babel-plugin-transform-es2015-modules-commonjs"), { loose: loose, strict: strict }]);
     }
 
     return {

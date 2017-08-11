@@ -44,7 +44,7 @@ function runtime() {
   regeneratorRuntime = require("regenerator-runtime");
 }
 exports.runtime = runtime;
-runtime.path = require.resolve("regenerator-runtime")
+runtime.path = "regenerator-runtime/lib/index.js"
 
 var cachedRuntimeCode;
 function getRuntimeCode() {
@@ -70,7 +70,7 @@ var getTransformOptions = function (opts) {
   });
 
   return {
-    presets: [["regenerator-preset", opts]],
+    presets: [[require("regenerator-preset"), opts]],
     parserOpts: {
       sourceType: "module",
       allowImportExportEverywhere: true,

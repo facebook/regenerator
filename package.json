@@ -25,6 +25,7 @@
   "main": "main.js",
   "bin": "bin/regenerator",
   "scripts": {
+    "docs:build": "browserify -s regenerator ./main.js > docs/bundle.js",
     "bootstrap": "lerna bootstrap",
     "pretest": "lerna run --parallel build",
     "test": "node test/run.js"
@@ -67,7 +68,7 @@
     "npm-run-all": "^4.0.2",
     "promise": "^7.0.4",
     "rimraf": "^2.6.1",
-    "rollup": "^0.45.2",
+    "rollup": "^0.46.2",
     "rollup-plugin-babel": "^2.7.1",
     "semver": "^5.0.3",
     "uglify-js": "^3.0.27"
