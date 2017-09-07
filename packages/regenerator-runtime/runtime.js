@@ -410,7 +410,9 @@
   // unified ._invoke helper method.
   defineIteratorMethods(Gp);
 
-  Gp[toStringTagSymbol] = "Generator";
+  try {
+    Gp[toStringTagSymbol] = "Generator";
+  } finally {}
 
   // A Generator should always return itself as the iterator object when the
   // @@iterator function is called on it. Some browsers' implementations of the
