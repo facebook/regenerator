@@ -4,6 +4,7 @@
   "description": "Explode async and generator functions into a state machine.",
   "version": "0.10.1",
   "main": "lib/index.js",
+  "files": ["lib"],
   "keywords": [
     "regenerator",
     "runtime",
