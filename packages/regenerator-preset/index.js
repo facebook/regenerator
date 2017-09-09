@@ -4,6 +4,7 @@ module.exports = {
     var modules = opts.modules !== undefined ? opts.modules : true;
     var loose = opts.loose !== undefined ? opts.loose : false;
     var strict = opts.strict !== undefined ? opts.strict : true;
+    var globalRuntimeName = opts.globalRuntimeName !== undefined ? opts.globalRuntimeName : false;
 
     var plugins = [
       require("babel-plugin-syntax-async-functions"),
@@ -12,7 +13,7 @@ module.exports = {
       require("babel-plugin-transform-es2015-arrow-functions"),
       require("babel-plugin-transform-es2015-block-scoping"),
       require("babel-plugin-transform-es2015-for-of"),
-      require("regenerator-transform").default
+      ["regenerator-transform", { globalRuntimeName: globalRuntimeName }]
     ];
 
     if (modules) {

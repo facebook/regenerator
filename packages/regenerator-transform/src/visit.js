@@ -21,6 +21,10 @@ import prv from "private";
 const getMarkInfo = prv.makeAccessor();
 
 export const pre = function (file) {
+  var globalRuntimeName = this.opts.globalRuntimeName
+  if (typeof globalRuntimeName === "string") {
+    this.set("globalRuntimeName", t.identifier(globalRuntimeName));
+  }
   this.setDynamic("regeneratorRuntime", function () {
     return file.addImport("regenerator-runtime", "*", "regeneratorRuntime");
   })

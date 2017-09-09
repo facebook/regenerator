@@ -12,7 +12,7 @@ import * as t from "babel-types";
 
 export function runtimeProperty(state, name) {
   return t.memberExpression(
-    state.get("regeneratorRuntime"),
+    state.get("globalRuntimeName") || state.get("regeneratorRuntime"),
     t.identifier(name),
     false
   );

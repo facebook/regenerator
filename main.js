@@ -10,6 +10,10 @@
 
 var fs = require("fs");
 var through = require("through");
+var babel = require("babel-core");
+var babylon = require("babylon");
+var traverse = require("babel-traverse").default;
+var generate = require("babel-generator").default;
 var transform = require("./lib/visit").transform;
 var utils = require("./lib/util");
 var genOrAsyncFunExp = /\bfunction\s*\*|\basync\b/;
@@ -40,23 +44,41 @@ function runtime() {
   regeneratorRuntime = require("regenerator-runtime");
 }
 exports.runtime = runtime;
-runtime.path = require("regenerator-runtime/path.js").path;
+runtime.path = require.resolve("regenerator-runtime")
 
 var cachedRuntimeCode;
 function getRuntimeCode() {
-  return cachedRuntimeCode ||
-    (cachedRuntimeCode = fs.readFileSync(runtime.path, "utf8"));
-}
+  if (cachedRuntimeCode) {
+    return cachedRuntimeCode;
+  }
+  var source = fs.readFileSync(runtime.path, "utf8").replace(/^'use strict';/, "'use strict';\nvar exports = {};");
+  var ast = babylon.parse(source);
 
-var transformOptions = {
-  presets: [["regenerator-preset", { strict: false }]],
-  parserOpts: {
-    sourceType: "module",
-    allowImportExportEverywhere: true,
-    allowReturnOutsideFunction: true,
-    allowSuperOutsideMethod: true,
-    strictMode: false,
-    plugins: ["*", "jsx", "flow"]
+  traverse(ast, {
+    Program: function (path) {
+      path.scope.rename("exports", "regeneratorRuntime");
+    },
+  });
+
+  return (cachedRuntimeCode = generate(ast).code);
+}
+runtime.getCode = getRuntimeCode;
+
+var getTransformOptions = function (opts) {
+  opts = utils.defaults(opts || {}, {
+    strict: false
+  });
+
+  return {
+    presets: [["regenerator-preset", opts]],
+    parserOpts: {
+      sourceType: "module",
+      allowImportExportEverywhere: true,
+      allowReturnOutsideFunction: true,
+      allowSuperOutsideMethod: true,
+      strictMode: false,
+      plugins: ["*", "jsx", "flow"]
+    }
   }
 };
 
@@ -69,7 +91,10 @@ function compile(source, options) {
 
   // Shortcut: Transform only if generators or async functions present.
   if (genOrAsyncFunExp.test(source)) {
-    result = require("babel-core").transform(source, transformOptions);
+    var globalRuntimeName = options.includeRuntime === true && "regeneratorRuntime";
+    result = babel.transform(source, getTransformOptions({
+      globalRuntimeName: globalRuntimeName,
+    }));
   } else {
     result = { code: source };
   }
