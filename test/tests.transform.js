@@ -3,9 +3,10 @@ var recast = require("recast");
 var types = recast.types;
 var n = types.namedTypes;
 var transform = require("..").transform;
+var UglifyJS = require("uglify-js");
 var compile = require("..").compile;
 
-var UglifyJS = require("uglify-js");
+var regeneratorRuntime = require("regenerator-runtime");
 
 describe("_blockHoist nodes", function() {
   it("should be hoisted to the outer body", function() {
@@ -29,9 +30,7 @@ describe("_blockHoist nodes", function() {
     assert.strictEqual(hoistMeStmt.expression.callee.name, "hoistMe");
 
     hoistMeStmt._blockHoist = 1;
-
-    eval(recast.print(transform(ast)).code);
-
+    eval(recast.print(transform(ast, { presetOptions: { strict: false } })).code);
     assert.strictEqual(typeof foo, "function");
     assert.ok(regeneratorRuntime.isGeneratorFunction(foo));
     assert.strictEqual(names.length, 0);
@@ -91,11 +90,14 @@ describe("uglifyjs dead code removal", function() {
       return b.type === 'VariableDeclaration';
     });
     assert.strictEqual(variableDeclarations.length, 1);
-    assert.strictEqual(variableDeclarations[0].declarations.length, 1);
-    var declaration = variableDeclarations[0].declarations[0];
 
+    var declarations = variableDeclarations[0].declarations.filter(function (declarator) {
+      return declarator.id.name.indexOf('regeneratorRuntime') === -1
+    });
+
+    assert.strictEqual(declarations.length, 1);
     // named foo
-    assert.strictEqual(declaration.id.name, 'foo');
+    assert.strictEqual(declarations[0].id.name, 'foo');
   });
 
   it("works with function declarations", function() {
@@ -123,7 +125,11 @@ describe("uglifyjs dead code removal", function() {
       return b.type === 'VariableDeclaration';
     });
     assert.strictEqual(variableDeclarations.length, 1);
-    var declarations = variableDeclarations[0].declarations;
+
+    var declarations = variableDeclarations[0].declarations.filter(function (declarator) {
+      return declarator.id.name.indexOf('regeneratorRuntime') === -1
+    });
+
     assert.strictEqual(declarations.length, 1);
     var declaration = declarations[0];
 
@@ -134,7 +140,7 @@ describe("uglifyjs dead code removal", function() {
 })
 
 context("functions", function() {
-  function marksCorrectly(marked, varName) {
+  function marksCorrectly(runtimeName, marked, varName) {
     // marked should be a VariableDeclarator
     n.VariableDeclarator.assert(marked);
 
@@ -143,7 +149,7 @@ context("functions", function() {
 
     // assiging a call expression to regeneratorRuntime.mark()
     n.CallExpression.assert(marked.init);
-    assert.strictEqual(marked.init.callee.object.name, 'regeneratorRuntime')
+    assert.strictEqual(marked.init.callee.object.name, runtimeName)
     assert.strictEqual(marked.init.callee.property.name, 'mark')
 
     // with said call expression marked as a pure function
@@ -157,12 +163,14 @@ context("functions", function() {
       });
 
       // get our declarations
-      const declaration = transform(ast).program.body[0];
+      var body = transform(ast).program.body;
+      var runtimeName = body[0].declarations[0].id.name;
+      var declaration = body[1];
       n.VariableDeclaration.assert(declaration);
-      const declarations = declaration.declarations;
+      var declarations = declaration.declarations;
 
       // verify our declaration is marked correctly
-      marksCorrectly(declarations[0], '_marked');
+      marksCorrectly(runtimeName, declarations[0], '_marked');
 
       // and has our function name as its first argument
       assert.strictEqual(declarations[0].init.arguments[0].name, 'foo');
@@ -177,17 +185,19 @@ context("functions", function() {
       });
 
       // get our declarations
-      const declaration = transform(ast).program.body[0];
+      var body = transform(ast).program.body;
+      var runtimeName = body[0].declarations[0].id.name;
+      var declaration = body[1];
       n.VariableDeclaration.assert(declaration);
-      const declarations = declaration.declarations;
+      var declarations = declaration.declarations;
 
       // verify our declarations are marked correctly and have our function name
       // as their first argument
-      marksCorrectly(declarations[0], '_marked');
+      marksCorrectly(runtimeName, declarations[0], '_marked');
       n.Identifier.assert(declarations[0].init.arguments[0]);
       assert.strictEqual(declarations[0].init.arguments[0].name, 'foo');
 
-      marksCorrectly(declarations[1], '_marked2');
+      marksCorrectly(runtimeName, declarations[1], '_marked2');
       n.Identifier.assert(declarations[1].init.arguments[0]);
       assert.strictEqual(declarations[1].init.arguments[0].name, 'bar');
     });
@@ -200,12 +210,14 @@ context("functions", function() {
       });
 
       // get our declarations
-      const declaration = transform(ast).program.body[0];
+      var body = transform(ast).program.body
+      var runtimeName = body[0].declarations[0].id.name;
+      var declaration = body[1];
       n.VariableDeclaration.assert(declaration);
-      const declarator = declaration.declarations[0];
+      var declarator = declaration.declarations[0];
 
       // verify our declaration is marked correctly
-      marksCorrectly(declarator, 'a');
+      marksCorrectly(runtimeName, declarator, 'a');
 
       // and that our first argument is our original function expression
       n.FunctionExpression.assert(declarator.init.arguments[0]);
@@ -218,12 +230,14 @@ context("functions", function() {
       });
 
       // get our declarations
-      const declaration = transform(ast).program.body[0];
+      var body = transform(ast).program.body
+      var runtimeName = body[0].declarations[0].id.name;
+      var declaration = body[1];
       n.VariableDeclaration.assert(declaration);
-      const declarator = declaration.declarations[0];
+      var declarator = declaration.declarations[0];
 
       // verify our declaration is marked correctly
-      marksCorrectly(declarator, 'a');
+      marksCorrectly(runtimeName, declarator, 'a');
 
       // and that our first argument is our original function expression
       n.FunctionExpression.assert(declarator.init.arguments[0]);

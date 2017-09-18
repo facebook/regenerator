@@ -16,9 +16,11 @@ import * as util from "./util";
 
 let hasOwn = Object.prototype.hasOwnProperty;
 
-function Emitter(contextId) {
+function Emitter(contextId, visitorState) {
   assert.ok(this instanceof Emitter);
   t.assertIdentifier(contextId);
+
+  this.visitorState = visitorState;
 
   // Used to generate unique temporary names.
   this.nextTempId = 0;
@@ -512,7 +514,7 @@ Ep.explodeStatement = function(path, labelId) {
     self.emitAssign(
       keyIterNextFn,
       t.callExpression(
-        util.runtimeProperty("keys"),
+        util.runtimeProperty(self.visitorState, "keys"),
         [self.explodeExpression(path.get("right"))]
       )
     );

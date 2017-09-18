@@ -87,7 +87,6 @@ if (semver.gte(process.version, "0.11.2")) {
   enqueue("mocha", [
     "--harmony",
     "--reporter", "spec",
-    "--require", "./test/runtime.js",
     "./test/tests.es6.js",
   ]);
 }
@@ -96,7 +95,6 @@ if (semver.gte(process.version, "4.0.0")) {
   enqueue("mocha", [
     "--harmony",
     "--reporter", "spec",
-    "--require", "./test/runtime.js",
     "./test/tests-node4.es6.js",
   ]);
 }
@@ -163,7 +161,6 @@ if (!semver.eq(process.version, "0.11.7")) {
     require.resolve("browserify"); // Throws if missing.
     enqueue(bundle, [
       [
-        "./test/runtime.js",
         "./test/tests.es5.js",
         "./test/tests-node4.es5.js",
         "./test/non-native.es5.js",
@@ -179,7 +176,6 @@ if (!semver.eq(process.version, "0.11.7")) {
 
 enqueue("mocha", [
   "--reporter", "spec",
-  "--require", "./test/runtime.js",
   "./test/tests.es5.js",
   "./test/tests-node4.es5.js",
   "./test/non-native.es5.js",

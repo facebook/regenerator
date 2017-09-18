@@ -9,17 +9,12 @@
  */
 
 var assert = require("assert");
+var regeneratorRuntime = require("regenerator-runtime");
 
 describe("async functions and await expressions", function() {
   Promise = require("promise");
 
   describe("regeneratorRuntime", function() {
-    it("should be defined globally", function() {
-      var global = Function("return this")();
-      assert.ok("regeneratorRuntime" in global);
-      assert.strictEqual(global.regeneratorRuntime, regeneratorRuntime);
-    });
-
     it("should have a .wrap method", function() {
       assert.strictEqual(typeof regeneratorRuntime.wrap, "function");
     });

@@ -10,9 +10,9 @@
 
 import * as t from "babel-types";
 
-export function runtimeProperty(name) {
+export function runtimeProperty(state, name) {
   return t.memberExpression(
-    t.identifier("regeneratorRuntime"),
+    state.get("globalRuntimeName") || state.get("regeneratorRuntime"),
     t.identifier(name),
     false
   );
