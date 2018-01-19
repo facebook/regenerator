@@ -42,7 +42,7 @@
     // The ._invoke method unifies the implementations of the .next,
     // .throw, and .return methods.
     generator._invoke = makeInvokeMethod(innerFn, self, context);
-
+    generator.outerFn = outerFn.name;
     return generator;
   }
   runtime.wrap = wrap;
