@@ -1,12 +1,9 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.regenerator = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var assert = require("assert");
@@ -103,13 +100,10 @@ exports.isReference = function(path, name) {
 
 },{"assert":553,"recast":520}],2:[function(require,module,exports){
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var recast = require("recast");
@@ -154,13 +148,10 @@ function injectRuntime(program) {
 
 },{"..":3,"./util.js":1,"babel-core":26,"recast":520,"regenerator-preset":539}],3:[function(require,module,exports){
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var fs = require("fs");
@@ -59709,6 +59700,13 @@ module.exports = function (str) {
 };
 
 },{}],539:[function(require,module,exports){
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 module.exports = {
   plugins: [
     require("babel-plugin-syntax-async-functions"),
@@ -59723,6 +59721,13 @@ module.exports = {
 
 },{"babel-plugin-syntax-async-functions":80,"babel-plugin-syntax-async-generators":81,"babel-plugin-transform-es2015-arrow-functions":82,"babel-plugin-transform-es2015-block-scoping":83,"babel-plugin-transform-es2015-classes":85,"babel-plugin-transform-es2015-for-of":88,"regenerator-transform":545}],540:[function(require,module,exports){
 (function (__dirname){
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 exports.path = require("path").join(
   __dirname,
   "runtime.js"
@@ -59730,6 +59735,13 @@ exports.path = require("path").join(
 
 }).call(this,"/node_modules/regenerator-runtime")
 },{"path":563}],541:[function(require,module,exports){
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 // This method of obtaining a reference to the global object needs to be
 // kept identical to the way it is obtained in runtime.js
 var g = (function() { return this })() || Function("return this")();
@@ -59761,13 +59773,10 @@ if (hadRuntime) {
 
 },{"./runtime":542}],542:[function(require,module,exports){
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 !(function(global) {
@@ -60515,13 +60524,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -61484,15 +61490,22 @@ Ep.explodeExpression = function (path, ignoreResult) {
       if (arg && expr.delegate) {
         var _result = self.makeTempVar();
 
-        self.emit(t.returnStatement(t.callExpression(self.contextProperty("delegateYield"), [arg, t.stringLiteral(_result.property.name), after])));
+        var _ret = t.returnStatement(t.callExpression(self.contextProperty("delegateYield"), [arg, t.stringLiteral(_result.property.name), after]));
+        _ret.loc = expr.loc;
 
+        self.emit(_ret);
         self.mark(after);
 
         return _result;
       }
 
       self.emitAssign(self.contextProperty("next"), after);
-      self.emit(t.returnStatement(arg || null));
+
+      var ret = t.returnStatement(arg || null);
+      // Preserve the `yield` location so that source mappings for the statements
+      // link back to the yield properly.
+      ret.loc = expr.loc;
+      self.emit(ret);
       self.mark(after);
 
       return self.contextProperty("sent");
@@ -61517,13 +61530,10 @@ var hasOwn = Object.prototype.hasOwnProperty;
 // returns a VariableDeclaration containing just the names of the removed
 // declarations.
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 exports.hoist = function (funPath) {
@@ -61592,7 +61602,7 @@ exports.hoist = function (funPath) {
       var node = path.node;
       vars[node.id.name] = node.id;
 
-      var assignment = t.expressionStatement(t.assignmentExpression("=", node.id, t.functionExpression(node.id, node.params, node.body, node.generator, node.expression)));
+      var assignment = t.expressionStatement(t.assignmentExpression("=", node.id, t.functionExpression(path.scope.generateUidIdentifierBasedOnNode(node), node.params, node.body, node.generator, node.expression)));
 
       if (path.parentPath.isBlockStatement()) {
         // Insert the assignment form before the first statement in the
@@ -61688,13 +61698,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function Entry() {
   _assert2.default.ok(this instanceof Entry);
 } /**
-   * Copyright (c) 2014, Facebook, Inc.
-   * All rights reserved.
+   * Copyright (c) 2014-present, Facebook, Inc.
    *
-   * This source code is licensed under the BSD-style license found in the
-   * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
-   * additional grant of patent rights can be found in the PATENTS file in
-   * the same directory.
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
    */
 
 function FunctionEntry(returnLoc) {
@@ -61872,13 +61879,10 @@ var _util = require("./util.js");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var m = require("private").makeAccessor();
@@ -62049,7 +62053,12 @@ function replaceShorthandObjectMethod(path) {
   // the FunctionExpression we just created is the value of the ObjectProperty,
   // so return the "value" path off of this path.
   return path.get("value");
-}
+} /**
+   * Copyright (c) 2014-present, Facebook, Inc.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   */
 },{"./util":549}],549:[function(require,module,exports){
 "use strict";
 
@@ -62060,13 +62069,10 @@ exports.runtimeProperty = runtimeProperty;
 exports.isReference = isReference;
 exports.replaceWithOrRemove = replaceWithOrRemove;
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 var currentTypes = null;
@@ -62109,13 +62115,10 @@ function replaceWithOrRemove(path, replacement) {
 }
 },{}],550:[function(require,module,exports){
 /**
- * Copyright (c) 2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2014-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
- * additional grant of patent rights can be found in the PATENTS file in
- * the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 "use strict";
