@@ -4330,7 +4330,7 @@ module.exports={
 }
 
 },{}],37:[function(require,module,exports){
-(function (Buffer){
+(function (){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4542,7 +4542,7 @@ class Buffer {
 }
 
 exports.default = Buffer;
-}).call(this,require("buffer").Buffer)
+}).call(this)
 },{"buffer":229,"trim-right":625}],38:[function(require,module,exports){
 "use strict";
 
