@@ -8,7 +8,7 @@
 // This method of obtaining a reference to the global object needs to be
 // kept identical to the way it is obtained in runtime.js
 var g = (function() {
-  return this ? this : (typeof self !== 'undefined' ? self : undefined)
+  return this || (typeof self === "object" && self);
 })() || Function("return this")();
 
 // Use `getOwnPropertyNames` because not all browsers support calling

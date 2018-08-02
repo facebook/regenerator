@@ -716,6 +716,6 @@
   // Function constructor if we're in global strict mode. That is sadly a form
   // of indirect eval which violates Content Security Policy.
   (function() {
-    return this ? this : (typeof self !== 'undefined' ? self : undefined)
+    return this || (typeof self === "object" && self);
   })() || Function("return this")()
 );
