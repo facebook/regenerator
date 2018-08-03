@@ -702,9 +702,9 @@ var regeneratorRuntime = (function (exports) {
   return exports;
 
 }(
-  typeof module === "object"
-    ? module.exports
-    // If this script is not executing in a CommonJS module, then define
-    // regeneratorRuntime globally and use it instead of module.exports.
-    : (regeneratorRuntime = {})
+  // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+  typeof module === "object" ? module.exports : {}
 ));
