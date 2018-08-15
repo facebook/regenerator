@@ -71,3 +71,8 @@ If you're feeling especially brave, you are more than welcome to dive into
 the transformer code and fix the bug(s) yourself, but I must warn you that
 the code could really benefit from [better implementation
 comments](https://github.com/facebook/regenerator/issues/7).
+
+License
+---
+
+BSD © 2014 - 2015 [Facebook Inc](https://github.com/facebook).
