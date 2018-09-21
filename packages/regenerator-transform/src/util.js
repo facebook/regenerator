@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { addDefault } from "@babel/helper-module-imports";
+
 let currentTypes = null;
 
 export function wrapWithTypes(types, fn) {
@@ -23,10 +25,30 @@ export function getTypes() {
   return currentTypes;
 }
 
-export function runtimeProperty(name) {
+const runtimeNames = new WeakMap();
+
+export function runtimeProperty(name, scope, opts) {
   const t = getTypes();
+
+  let runtimeId;
+  if (!opts.importRuntime) {
+    runtimeId = t.identifier("regeneratorRuntime");
+  } else {
+    const programPath = scope.getProgramParent().path;
+    if (runtimeNames.has(programPath.node)) {
+      runtimeId = t.identifier(runtimeNames.get(programPath.node));
+    } else {
+      runtimeId = addDefault(programPath, "regenerator-runtime", {
+        nameHint: "regeneratorRuntime",
+        importedInterop: "uncompiled",
+        blockHoist: 3
+      });
+      runtimeNames.set(programPath.node, runtimeId.name);
+    }
+  }
+
   return t.memberExpression(
-    t.identifier("regeneratorRuntime"),
+    runtimeId,
     t.identifier(name),
     false
   );

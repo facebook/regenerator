@@ -12,7 +12,7 @@ import * as util from "./util";
 
 let hasOwn = Object.prototype.hasOwnProperty;
 
-function Emitter(contextId) {
+function Emitter(contextId, opts) {
   assert.ok(this instanceof Emitter);
 
   util.getTypes().assertIdentifier(contextId);
@@ -47,6 +47,9 @@ function Emitter(contextId) {
   // to enter a nested loop context that determines the meaning of break
   // and continue statements therein.
   this.leapManager = new leap.LeapManager(this);
+
+  // The options passed to the plugin
+  this.opts = opts;
 }
 
 let Ep = Emitter.prototype;
@@ -537,7 +540,7 @@ Ep.explodeStatement = function(path, labelId) {
     self.emitAssign(
       keyIterNextFn,
       t.callExpression(
-        util.runtimeProperty("keys"),
+        util.runtimeProperty("keys", path.scope, this.opts),
         [self.explodeExpression(path.get("right"))]
       )
     );
