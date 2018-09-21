@@ -25,7 +25,9 @@ $ npm install regenerator-transform
     ["regenerator-transform", {
       asyncGenerators: false, // true by default
       generators: false, // true by default
-      async: false // true by default
+      async: false, // true by default
+
+      importRuntime: true // false by default
     }]
   ]
 }
