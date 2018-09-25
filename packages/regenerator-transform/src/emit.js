@@ -6,13 +6,14 @@
  */
 
 import assert from "assert";
+import { addDefault } from "@babel/helper-module-imports";
 import * as leap from "./leap";
 import * as meta from "./meta";
 import * as util from "./util";
 
 let hasOwn = Object.prototype.hasOwnProperty;
 
-function Emitter(contextId, opts) {
+function Emitter(contextId, programPath, opts) {
   assert.ok(this instanceof Emitter);
 
   util.getTypes().assertIdentifier(contextId);
@@ -50,6 +51,8 @@ function Emitter(contextId, opts) {
 
   // The options passed to the plugin
   this.opts = opts;
+
+  this.programPath = programPath;
 }
 
 let Ep = Emitter.prototype;
@@ -540,7 +543,7 @@ Ep.explodeStatement = function(path, labelId) {
     self.emitAssign(
       keyIterNextFn,
       t.callExpression(
-        util.runtimeProperty("keys", path.scope, this.opts),
+        self.runtimeProperty("keys"),
         [self.explodeExpression(path.get("right"))]
       )
     );
@@ -1255,3 +1258,31 @@ Ep.explodeExpression = function(path, ignoreResult) {
         JSON.stringify(expr.type));
   }
 };
+
+const runtimeNames = new WeakMap();
+
+Ep.runtimeProperty = function (name) {
+  const t = util.getTypes();
+
+  let runtimeId;
+  if (!this.opts.importRuntime) {
+    runtimeId = t.identifier("regeneratorRuntime");
+  } else {
+    if (runtimeNames.has(this.programPath.node)) {
+      runtimeId = t.identifier(runtimeNames.get(this.programPath.node));
+    } else {
+      runtimeId = addDefault(this.programPath, "regenerator-runtime", {
+        nameHint: "regeneratorRuntime",
+        importedInterop: "uncompiled",
+        blockHoist: 3
+      });
+      runtimeNames.set(this.programPath.node, runtimeId.name);
+    }
+  }
+
+  return t.memberExpression(
+    runtimeId,
+    t.identifier(name),
+    false
+  );
+}

@@ -41,11 +41,17 @@ exports.getVisitor = ({ types: t }) => ({
       let contextId = path.scope.generateUidIdentifier("context");
       let argsId = path.scope.generateUidIdentifier("args");
 
+      const programPath = path.find(p => p.isProgram());
+      let emitter = new Emitter(contextId, programPath, state.opts);
+
       path.ensureBlock();
       let bodyBlockPath = path.get("body");
 
       if (node.async) {
-        bodyBlockPath.traverse(awaitVisitor, state);
+        bodyBlockPath.traverse(
+          awaitVisitor,
+          Object.assign({}, state, { emitter })
+        );
       }
 
       bodyBlockPath.traverse(functionSentVisitor, {
@@ -78,7 +84,7 @@ exports.getVisitor = ({ types: t }) => ({
         bodyBlockPath.node.body = innerBody;
       }
 
-      let outerFnExpr = getOuterFnExpr(path, state.opts);
+      let outerFnExpr = getOuterFnExpr(path, emitter);
       // Note that getOuterFnExpr has the side-effect of ensuring that the
       // function has a name (so node.id will always be an Identifier), even
       // if a temporary name has to be synthesized.
@@ -100,7 +106,6 @@ exports.getVisitor = ({ types: t }) => ({
         ));
       }
 
-      let emitter = new Emitter(contextId, state.opts);
       emitter.explode(path.get("body"));
 
       if (vars && vars.declarations.length > 0) {
@@ -122,7 +127,7 @@ exports.getVisitor = ({ types: t }) => ({
       }
 
       let wrapCall = t.callExpression(
-        util.runtimeProperty(node.async ? "async" : "wrap", path.scope, state.opts),
+        emitter.runtimeProperty(node.async ? "async" : "wrap"),
         wrapArgs
       );
 
@@ -147,7 +152,7 @@ exports.getVisitor = ({ types: t }) => ({
 
       if (wasGeneratorFunction && t.isExpression(node)) {
         util.replaceWithOrRemove(path, t.callExpression(
-          util.runtimeProperty("mark", path.scope, state.opts),
+          emitter.runtimeProperty("mark"),
           [node]
         ));
         path.addComment("leading", "#__PURE__");
@@ -177,7 +182,7 @@ exports.getVisitor = ({ types: t }) => ({
 // used to refer reliably to the function object from inside the function.
 // This expression is essentially a replacement for arguments.callee, with
 // the key advantage that it works in strict mode.
-function getOuterFnExpr(funPath, opts) {
+function getOuterFnExpr(funPath, emitter) {
   const t = util.getTypes();
   let node = funPath.node;
   t.assertFunction(node);
@@ -191,7 +196,7 @@ function getOuterFnExpr(funPath, opts) {
   if (node.generator && // Non-generator functions don't need to be marked.
       t.isFunctionDeclaration(node)) {
     // Return the identifier returned by runtime.mark(<node.id>).
-    return getMarkedFunctionId(funPath, opts);
+    return getMarkedFunctionId(funPath, emitter);
   }
 
   return t.clone(node.id);
@@ -199,7 +204,7 @@ function getOuterFnExpr(funPath, opts) {
 
 const getMarkInfo = require("private").makeAccessor();
 
-function getMarkedFunctionId(funPath, opts) {
+function getMarkedFunctionId(funPath, emitter) {
   const t = util.getTypes();
   const node = funPath.node;
   t.assertIdentifier(node.id);
@@ -227,7 +232,7 @@ function getMarkedFunctionId(funPath, opts) {
   // Get a new unique identifier for our marked variable.
   const markedId = blockPath.scope.generateUidIdentifier("marked");
   const markCallExp = t.callExpression(
-    util.runtimeProperty("mark", funPath.scope, opts),
+    emitter.runtimeProperty("mark"),
     [t.clone(node.id)]
   );
 
@@ -307,7 +312,7 @@ let awaitVisitor = {
     // can distinguish between awaited and merely yielded values.
     util.replaceWithOrRemove(path, t.yieldExpression(
       t.callExpression(
-        util.runtimeProperty("awrap", path.scope, state.opts),
+        state.emitter.runtimeProperty("awrap"),
         [argument]
       ),
       false
