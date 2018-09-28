@@ -6,11 +6,13 @@
  */
 
 var assert = require("assert");
+var babel = require("@babel/core");
 var recast = require("recast");
 var types = recast.types;
 var n = types.namedTypes;
 var transform = require("..").transform;
 var compile = require("..").compile;
+var babelPlugin = require("../packages/regenerator-transform");
 
 var UglifyJS = require("uglify-js");
 
@@ -235,6 +237,43 @@ context("functions", function() {
       // and that our first argument is our original function expression
       n.FunctionExpression.assert(declarator.init.arguments[0]);
       assert.strictEqual(declarator.init.arguments[0].id.name, '_callee');
+    });
+  });
+});
+
+context("regenerator-transform", function () {
+  function transform(code, pluginOptions, babelOptions) {
+    return babel.transformSync(code, Object.assign({
+      plugins: [[babelPlugin, pluginOptions]],
+      configFile: false
+    }, babelOptions)).code;
+  }
+
+  describe("importRuntime option", function () {
+    it("es modules", function() {
+      var out = transform(
+        "function* f() {}",
+        { importRuntime: true },
+        { sourceType: "module" }
+      );
+
+      var importRE = /import (\w+) from "regenerator-runtime"/;
+      assert.ok(importRE.test(out));
+      var runtimeName = importRE.exec(out)[1];
+      assert.ok(out.includes(runtimeName + ".wrap"));
+    });
+
+    it("cjs modules", function() {
+      var out = transform(
+        "function* f() {}",
+        { importRuntime: true },
+        { sourceType: "script" }
+      );
+
+      var importRE = /var (\w+) = require\("regenerator-runtime"\)/;
+      assert.ok(importRE.test(out));
+      var runtimeName = importRE.exec(out)[1];
+      assert.ok(out.includes(runtimeName + ".wrap"));
     });
   });
 });

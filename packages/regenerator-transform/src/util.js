@@ -23,15 +23,6 @@ export function getTypes() {
   return currentTypes;
 }
 
-export function runtimeProperty(name) {
-  const t = getTypes();
-  return t.memberExpression(
-    t.identifier("regeneratorRuntime"),
-    t.identifier(name),
-    false
-  );
-}
-
 export function isReference(path) {
   return path.isReferenced() || path.parentPath.isAssignmentExpression({ left: path.node });
 }
