@@ -4601,7 +4601,7 @@ module.exports={
 ,"_from": "@babel/core@7.1.6"
 }
 },{}],38:[function(require,module,exports){
-(function (Buffer){
+(function (){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4859,7 +4859,7 @@ class Buffer {
 }
 
 exports.default = Buffer;
-}).call(this,require("buffer").Buffer)
+}).call(this)
 },{"buffer":195,"trim-right":512}],39:[function(require,module,exports){
 "use strict";
 
