@@ -313,13 +313,3 @@ let awaitVisitor = {
     ));
   }
 };
-
-let thisVisitor = {
-  "FunctionExpression|FunctionDeclaration|Class": function(path) {
-    path.skip(); // Different this context
-  },
-  ThisExpression: function(path, state) {
-    state.referencesThis = true;
-    path.stop();
-  },
-};
