@@ -147,6 +147,17 @@ exports.getVisitor = ({ types: t }) => ({
       }
       if (tryLocsList) {
         wrapArgs.push(tryLocsList);
+      } else if (node.async) {
+        wrapArgs.push(t.nullLiteral());
+      }
+
+      if (node.async) {
+        let currentScope = path.scope;
+        do {
+          if (currentScope.hasOwnBinding("Promise")) currentScope.rename("Promise");
+        } while (currentScope = currentScope.parent);
+
+        wrapArgs.push(t.identifier("Promise"));
       }
 
       let wrapCall = t.callExpression(
