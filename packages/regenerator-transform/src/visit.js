@@ -134,7 +134,7 @@ exports.getVisitor = ({ types: t }) => ({
 
       if (node.generator) {
         wrapArgs.push(outerFnExpr);
-      } else if (context.usesThis || tryLocsList) {
+      } else if (context.usesThis || tryLocsList || node.async) {
         // Async functions that are not generators don't care about the
         // outer function because they don't need it to be marked and don't
         // inherit from its .prototype.
@@ -142,7 +142,7 @@ exports.getVisitor = ({ types: t }) => ({
       }
       if (context.usesThis) {
         wrapArgs.push(t.thisExpression());
-      } else if (tryLocsList) {
+      } else if (tryLocsList || node.async) {
         wrapArgs.push(t.nullLiteral());
       }
       if (tryLocsList) {
