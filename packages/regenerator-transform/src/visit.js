@@ -152,6 +152,8 @@ exports.getVisitor = ({ types: t }) => ({
       }
 
       if (node.async) {
+        // Rename any locally declared "Promise" variable,
+        // to use the global one.
         let currentScope = path.scope;
         do {
           if (currentScope.hasOwnBinding("Promise")) currentScope.rename("Promise");
