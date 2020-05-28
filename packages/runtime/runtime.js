@@ -748,7 +748,7 @@ if (typeof globalThis === "object") {
     // you've misconfigured your bundler to force strict mode and applied a
     // CSP to forbid Function, and you're not willing to fix either of those
     // problems, please detail your unique predicament in a GitHub issue.
-    var _ = Function("return this");
+    var _ = Function("return this")();
     _.regeneratorRuntime = runtime;
   }
 }
