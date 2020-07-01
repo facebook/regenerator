@@ -111,9 +111,12 @@ var runtime = (function (exports) {
 
   exports.mark = function(genFun) {
     if (Object.setPrototypeOf) {
+    // NOT IE
       Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
     } else {
+      // IE
       genFun.__proto__ = GeneratorFunctionPrototype;
+      genFun.constructor.displayName = 'GeneratorFunction'; // fix isGeneratorFunction in IE 10
       if (!(toStringTagSymbol in genFun)) {
         genFun[toStringTagSymbol] = "GeneratorFunction";
       }
