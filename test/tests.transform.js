@@ -7,6 +7,7 @@
 
 var assert = require("assert");
 var recast = require("recast");
+var v8 = require("v8");
 var types = recast.types;
 var n = types.namedTypes;
 var transform = require("..").transform;
@@ -148,13 +149,18 @@ context("functions", function() {
     // using our variable name
     assert.strictEqual(marked.id.name, varName);
 
+    assertMarkCall(marked.init);
+  }
+
+  function assertMarkCall(node) {
     // assiging a call expression to regeneratorRuntime.mark()
-    n.CallExpression.assert(marked.init);
-    assert.strictEqual(marked.init.callee.object.name, 'regeneratorRuntime')
-    assert.strictEqual(marked.init.callee.property.name, 'mark')
+
+    n.CallExpression.assert(node);
+    assert.strictEqual(node.callee.object.name, 'regeneratorRuntime')
+    assert.strictEqual(node.callee.property.name, 'mark')
 
     // with said call expression marked as a pure function
-    assert.strictEqual(marked.init.leadingComments[0].value, '#__PURE__');
+    assert.strictEqual(node.leadingComments[0].value, '#__PURE__');
   }
 
   describe("function declarations", function() {
@@ -238,32 +244,118 @@ context("functions", function() {
     });
   });
 
+  describe("class methods", function() {
+    it("should be correctly wrapped", function () {
+      const input = `
+        class A {
+          *foo() {}
+        }
+      `;
+
+      // The regenerator preset also transpiles classes
+      const { ast } = require("@babel/core").transformSync(input, {
+        configFile: false,
+        ast: true,
+        plugins: [require("../packages/regenerator-transform")],
+      });
+
+      const method = ast.program.body[0].body.body[0];
+      n.ClassMethod.assert(method);
+
+      const return_ = method.body.body[0];
+      n.ReturnStatement.assert(return_);
+      n.CallExpression.assert(return_.argument);
+
+      assertMarkCall(return_.argument.callee);
+
+      /*
+      class A {
+        foo() {
+          return (
+            #__PURE__
+            regeneratorRuntime.mark(function _callee() {
+              return regeneratorRuntime.wrap(function _callee$(_context) {
+                while (1) switch (_context.prev = _context.next) {
+                  case 0:
+                  case "end":
+                    return _context.stop();
+                }
+              }, _callee);
+            })()
+          );
+        }
+
+      }
+      */
+    });
+  });
+
   describe("variables hoisting", function() {
     it("shouldn't throw about duplicate bindings", function() {
       // https://github.com/babel/babel/issues/6923
 
-      const code = [
-        "async function foo() {",
-        "  (async function (number) {",
-        "    const tmp = number",
-        "  })",
-        "}",
-      ].join("\n");
+      const code = `
+        async function foo() {
+          (async function f(number) {
+            const tmp = number
+          })
+        }
+      `;
 
       assert.doesNotThrow(function() {
-        const code = `
-          async function foo() {
-            (async function f(number) {
-              const tmp = number
-            })
-          }
-        `;
-
         require("@babel/core").transformSync(code, {
           configFile: false,
           plugins: [require("../packages/regenerator-transform")],
         });
       });
-    })
+    });
+
+    it("should register hoisted variable bindings", function() {
+      // https://github.com/babel/babel/issues/10193
+
+      const code = `
+        import { someAction } from 'actions';
+
+        function* foo() { const someAction = bar; }
+      `;
+
+      const compiled = require("@babel/core").transformSync(code, {
+        configFile: false,
+        plugins: [
+          require("../packages/regenerator-transform"),
+          require("@babel/plugin-transform-modules-commonjs")
+        ]
+      }).code;
+
+      assert.strictEqual(compiled.indexOf("throw"), -1);
+      assert.strictEqual(compiled.indexOf("read-only"), -1);
+    });
   });
 });
+
+describe("ast serialization", function() {
+  function getAST() {
+    return require("@babel/core").transformSync(
+`function* foo() {
+  arguments;
+}`,
+      {
+        ast: true,
+        configFile: false,
+        plugins: [require("../packages/regenerator-transform")],
+      },
+    ).ast;
+  }
+
+  it("produces an ast that is JSON serializable", function() {
+    assert.doesNotThrow(function() {
+      JSON.stringify(getAST());
+    });
+  })
+
+  it("produces an ast that is serializable with v8's serializer", function() {
+    assert.doesNotThrow(function() {
+      v8.serialize(getAST());
+    });
+  })
+})

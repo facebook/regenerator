@@ -115,12 +115,29 @@ if (semver.gte(process.version, "8.10.0")) {
   ]);
 }
 
+if (semver.gte(process.version, "6.0.0")) {
+  enqueue("mocha", [
+    "--harmony",
+    "--reporter", "spec",
+    "--require", "./test/runtime.js",
+    "./test/class.js",
+  ]);
+}
+
 if (semver.gte(process.version, "4.0.0")) {
   enqueue("mocha", [
     "--harmony",
     "--reporter", "spec",
     "--require", "./test/runtime.js",
     "./test/tests-node4.es6.js",
+  ]);
+}
+
+if (semver.gte(process.version, "4.0.0")) {
+  enqueue("mocha", [
+    "--harmony",
+    "--reporter", "spec",
+    "./test/non-writable-tostringtag-property.js",
   ]);
 }
 
@@ -151,11 +168,15 @@ enqueue(convert, [
   "./test/async.es5.js"
 ]);
 
-function convertWithSpread(es6File, es5File, callback) {
+enqueue(convert, [
+  "./test/class.js",
+  "./test/class.es5.js"
+]);
+
+function convertWithParamsTransform(es6File, es5File, callback) {
   var transformOptions = {
     presets:[require("regenerator-preset")],
     plugins: [
-      require("@babel/plugin-transform-spread"),
       require("@babel/plugin-transform-parameters")
     ],
     parserOpts: {
@@ -186,10 +207,66 @@ function convertWithSpread(es6File, es5File, callback) {
   });
 }
 
-enqueue(convertWithSpread, [
+enqueue(convertWithParamsTransform, [
   "./test/regression.js",
   "./test/regression.es5.js"
 ]);
+
+function convertWithCustomPromiseReplacer(es6File, es5File, callback) {
+  var transformOptions = {
+    presets: [require("regenerator-preset")],
+    plugins: [function(babel) {
+      return {
+        visitor: {
+          FunctionExpression: {
+            exit(path) {
+              const stmt = path.get("body.body").find(function (stmt) {
+                return stmt.isLabeledStatement() &&
+                  stmt.get("label").isIdentifier({ name: "babelInjectPromise" });
+              });
+              if (!stmt) return;
+
+              path.traverse({
+                ReferencedIdentifier(path) {
+                  if (path.node.name === "Promise") {
+                    path.replaceWith(
+                      babel.types.cloneNode(stmt.node.body.expression)
+                    );
+                  }
+                }
+              });
+            }
+          }
+        }
+      };
+    }],
+    parserOpts: {
+      strictMode: false,
+    },
+    ast: true
+  };
+
+  fs.readFile(es6File, "utf-8", function(err, es6) {
+    if (err) {
+      return callback(err);
+    }
+
+    var { code: es5, ast } = babel.transformSync(es6, transformOptions);
+    fs.writeFileSync(es5File, es5);
+    try {
+      checkDuplicatedNodes(babel, ast);
+    } catch (err) {
+      err.message = "Occured while transforming: " + es6File + "\n" + err.message;
+      callback(err);
+    }
+    callback();
+  });
+}
+
+enqueue(convertWithCustomPromiseReplacer, [
+  "./test/async-custom-promise.js",
+  "./test/async-custom-promise.es5.js"
+])
 
 enqueue(makeMochaCopyFunction("mocha.js"));
 enqueue(makeMochaCopyFunction("mocha.css"));
@@ -222,6 +299,7 @@ enqueue("mocha", [
   "./test/tests-node4.es5.js",
   "./test/non-native.es5.js",
   "./test/async.es5.js",
+  "./test/async-custom-promise.es5.js",
   "./test/regression.es5.js",
   "./test/tests.transform.js"
 ]);

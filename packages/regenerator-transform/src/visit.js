@@ -12,28 +12,42 @@ import { hoist } from "./hoist";
 import { Emitter } from "./emit";
 import replaceShorthandObjectMethod from "./replaceShorthandObjectMethod";
 import * as util from "./util";
-import { makeAccessor } from "private";
 
 exports.getVisitor = ({ types: t }) => ({
+  Method(path, state) {
+    let node = path.node;
+
+    if (!shouldRegenerate(node, state)) return;
+
+    const container = t.functionExpression(
+      null,
+      [],
+      t.cloneNode(node.body, false),
+      node.generator,
+      node.async,
+    );
+
+    path.get("body").set("body", [
+      t.returnStatement(
+        t.callExpression(container, []),
+      ),
+    ]);
+
+    // Regardless of whether or not the wrapped function is a an async method
+    // or generator the outer function should not be
+    node.async = false;
+    node.generator = false;
+
+    // Unwrap the wrapper IIFE's environment so super and this and such still work.
+    path
+      .get("body.body.0.argument.callee")
+      .unwrapFunctionEnvironment();
+  },
   Function: {
     exit: util.wrapWithTypes(t, function(path, state) {
       let node = path.node;
 
-      if (node.generator) {
-        if (node.async) {
-          // Async generator
-          if (state.opts.asyncGenerators === false) return;
-        } else {
-          // Plain generator
-          if (state.opts.generators === false) return;
-        }
-      } else if (node.async) {
-        // Async function
-        if (state.opts.async === false) return;
-      } else {
-        // Not a generator or async function.
-        return;
-      }
+      if (!shouldRegenerate(node, state)) return;
 
       // if this is an ObjectMethod, we need to convert it to an ObjectProperty
       path = replaceShorthandObjectMethod(path);
@@ -99,11 +113,9 @@ exports.getVisitor = ({ types: t }) => ({
 
       if (context.usesArguments) {
         vars = vars || t.variableDeclaration("var", []);
-        const argumentIdentifier = t.identifier("arguments");
-        // we need to do this as otherwise arguments in arrow functions gets hoisted
-        argumentIdentifier._shadowedFunctionLiteral = path;
         vars.declarations.push(t.variableDeclarator(
-          t.clone(argsId), argumentIdentifier
+          t.clone(argsId),
+          t.identifier("arguments"),
         ));
       }
 
@@ -119,7 +131,7 @@ exports.getVisitor = ({ types: t }) => ({
 
       if (node.generator) {
         wrapArgs.push(outerFnExpr);
-      } else if (context.usesThis || tryLocsList) {
+      } else if (context.usesThis || tryLocsList || node.async) {
         // Async functions that are not generators don't care about the
         // outer function because they don't need it to be marked and don't
         // inherit from its .prototype.
@@ -127,11 +139,24 @@ exports.getVisitor = ({ types: t }) => ({
       }
       if (context.usesThis) {
         wrapArgs.push(t.thisExpression());
-      } else if (tryLocsList) {
+      } else if (tryLocsList || node.async) {
         wrapArgs.push(t.nullLiteral());
       }
       if (tryLocsList) {
         wrapArgs.push(tryLocsList);
+      } else if (node.async) {
+        wrapArgs.push(t.nullLiteral());
+      }
+
+      if (node.async) {
+        // Rename any locally declared "Promise" variable,
+        // to use the global one.
+        let currentScope = path.scope;
+        do {
+          if (currentScope.hasOwnBinding("Promise")) currentScope.rename("Promise");
+        } while (currentScope = currentScope.parent);
+
+        wrapArgs.push(t.identifier("Promise"));
       }
 
       let wrapCall = t.callExpression(
@@ -141,6 +166,9 @@ exports.getVisitor = ({ types: t }) => ({
 
       outerBody.push(t.returnStatement(wrapCall));
       node.body = t.blockStatement(outerBody);
+      // We injected a few new variable declarations (for every hoisted var),
+      // so we need to add them to the scope.
+      path.get("body.body").forEach(p => p.scope.registerDeclaration(p));
 
       const oldDirectives = bodyBlockPath.node.directives;
       if (oldDirectives) {
@@ -183,6 +211,25 @@ exports.getVisitor = ({ types: t }) => ({
   }
 });
 
+// Check if a node should be transformed by regenerator
+function shouldRegenerate(node, state) {
+  if (node.generator) {
+    if (node.async) {
+      // Async generator
+      return state.opts.asyncGenerators !== false;
+    } else {
+      // Plain generator
+      return state.opts.generators !== false;
+    }
+  } else if (node.async) {
+    // Async function
+    return state.opts.async !== false;
+  } else {
+    // Not a generator or async function.
+    return false;
+  }
+}
+
 // Given a NodePath for a Function, return an Expression node that can be
 // used to refer reliably to the function object from inside the function.
 // This expression is essentially a replacement for arguments.callee, with
@@ -207,7 +254,14 @@ function getOuterFnExpr(funPath) {
   return t.clone(node.id);
 }
 
-const getMarkInfo = makeAccessor();
+const markInfo = new WeakMap();
+
+function getMarkInfo(node) {
+  if (!markInfo.has(node)) {
+    markInfo.set(node, {});
+  }
+  return markInfo.get(node);
+}
 
 function getMarkedFunctionId(funPath) {
   const t = util.getTypes();
@@ -256,7 +310,7 @@ function getMarkedFunctionId(funPath) {
 }
 
 let argumentsThisVisitor = {
-  "FunctionExpression|FunctionDeclaration": function(path) {
+  "FunctionExpression|FunctionDeclaration|Method": function(path) {
     path.skip();
   },
 
