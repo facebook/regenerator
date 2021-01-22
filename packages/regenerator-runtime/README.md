@@ -14,14 +14,14 @@ const regeneratorRuntime = require("regenerator-runtime");
 import regeneratorRuntime from "regenerator-runtime";
 ```
 
-To ensure that `regeneratorRuntime` is defined globally, either of the
-following styles will work:
+This will also define `regeneratorRuntime` globally. If you only need the
+global destination, either of these following import styles will work:
 ```js
 // CommonJS
-require("regenerator-runtime/runtime");
+require("regenerator-runtime");
 
 // ECMAScript 2015
-import "regenerator-runtime/runtime.js";
+import "regenerator-runtime";
 ```
 
 To get the absolute file system path of `runtime.js`, evaluate the
