@@ -43,7 +43,7 @@ var runtime = (function (exports) {
     // The ._invoke method unifies the implementations of the .next,
     // .throw, and .return methods.
     generator._invoke = makeInvokeMethod(innerFn, self, context);
-
+    outerFn && outerFn.prototype instanceof Generator && (generator.outerFn = outerFn.name);
     return generator;
   }
   exports.wrap = wrap;
