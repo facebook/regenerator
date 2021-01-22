@@ -24,6 +24,10 @@ exports.hoist = function(funPath) {
     let exprs = [];
 
     vdec.declarations.forEach(function(dec) {
+      if (!t.isIdentifier(dec.id)) {
+        // We don't support ArrayPattern and ObjectPattern
+        throw new Error("Unsupported declarator with type " + JSON.stringify(dec.id.type) + ", please add \"@babel/plugin-transform-destructuring\" to your babel config.")
+      }
       // Note: We duplicate 'dec.id' here to ensure that the variable declaration IDs don't
       // have the same 'loc' value, since that can make sourcemaps and retainLines behave poorly.
       vars[dec.id.name] = t.identifier(dec.id.name);
