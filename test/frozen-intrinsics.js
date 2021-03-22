@@ -6,8 +6,14 @@
  */
 
 var assert = require("assert");
-require('./lockdown.cjs')
 
+// wrokaround for node v10
+if (!global.globalThis) {
+  global.globalThis = global
+}
+
+// freeze intrinsics
+require('./lockdown.cjs')
 lockdown()
 
 describe("Frozen intrinsics test", function () {
