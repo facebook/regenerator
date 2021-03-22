@@ -6,31 +6,9 @@
  */
 
 var assert = require("assert");
+require('./lockdown.cjs')
 
-var getPrototypeOf = Reflect.getPrototypeOf;
-function getConstructorOf(obj) {
-  return getPrototypeOf(obj).constructor;
-}
-
-var SymbolIterator = (typeof Symbol && Symbol.iterator) || '@@iterator';
-var ArrayIteratorObject = new Array()[SymbolIterator]();
-var ArrayIteratorPrototype = getPrototypeOf(ArrayIteratorObject);
-var IteratorPrototype = getPrototypeOf(ArrayIteratorPrototype);
-async function* AsyncGeneratorFunctionInstance() {}
-var AsyncGeneratorFunction = getConstructorOf(
-  AsyncGeneratorFunctionInstance,
-);
-var AsyncGenerator = AsyncGeneratorFunction.prototype;
-var AsyncGeneratorPrototype = AsyncGenerator.prototype;
-var AsyncIteratorPrototype = getPrototypeOf(AsyncGeneratorPrototype);
-
-// freeze relevant intrinsics
-Object.freeze(Object.prototype);
-Object.freeze(IteratorPrototype);
-Object.freeze(ArrayIteratorPrototype);
-Object.freeze(AsyncGenerator);
-Object.freeze(AsyncGeneratorPrototype);
-Object.freeze(AsyncIteratorPrototype);
+lockdown()
 
 describe("Frozen intrinsics test", function () {
   it("regenerator-runtime doesn't fail to initialize when Object prototype is frozen", function() {
