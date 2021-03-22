@@ -9,12 +9,12 @@ var assert = require("assert");
 
 // wrokaround for node v10
 if (!global.globalThis) {
-  global.globalThis = global
+  global.globalThis = global;
 }
 
 // freeze intrinsics
-require('./lockdown.cjs')
-lockdown()
+require('./lockdown.cjs');
+lockdown();
 
 describe("Frozen intrinsics test", function () {
   it("regenerator-runtime doesn't fail to initialize when Object prototype is frozen", function() {
