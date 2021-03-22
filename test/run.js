@@ -141,11 +141,13 @@ if (semver.gte(process.version, "4.0.0")) {
   ]);
 }
 
-enqueue("mocha", [
-  "--harmony",
-  "--reporter", "spec",
-  "./test/frozen-intrinsics.js",
-]);
+if (semver.gte(process.version, "10.0.0")) {
+  enqueue("mocha", [
+    "--harmony",
+    "--reporter", "spec",
+    "./test/frozen-intrinsics.js",
+  ]);
+}
 
 enqueue(convert, [
   "./test/tests.es6.js",
