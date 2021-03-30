@@ -14,6 +14,14 @@ var checkDuplicatedNodes = require("babel-check-duplicated-nodes").default;
 var regenerator = require("../main");
 var mochaDir = path.dirname(require.resolve("mocha"));
 
+var mochaCmd = "mocha";
+var regeneratorCmd = "./bin/regenerator";
+
+if (require("os").platform() === "win32") {
+  mochaCmd = "mocha.cmd";
+  regeneratorCmd = "bin\\regenerator.cmd";
+}
+
 function convert(es6File, es5File, callback) {
   var transformOptions = {
     presets:[require("regenerator-preset")],
@@ -98,7 +106,7 @@ function makeMochaCopyFunction(fileName) {
 }
 
 if (semver.gte(process.version, "0.11.2")) {
-  enqueue("mocha", [
+  enqueue(mochaCmd, [
     "--harmony",
     "--reporter", "spec",
     "--require", "./test/runtime.js",
@@ -125,7 +133,7 @@ if (semver.gte(process.version, "6.0.0")) {
 }
 
 if (semver.gte(process.version, "4.0.0")) {
-  enqueue("mocha", [
+  enqueue(mochaCmd, [
     "--harmony",
     "--reporter", "spec",
     "--require", "./test/runtime.js",
@@ -298,7 +306,7 @@ if (!semver.eq(process.version, "0.11.7")) {
   }
 }
 
-enqueue("mocha", [
+enqueue(mochaCmd, [
   "--reporter", "spec",
   "--require", "./test/runtime.js",
   "./test/tests.es5.js",
@@ -312,21 +320,21 @@ enqueue("mocha", [
 
 // Run command-line tool with available options to make sure it works.
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--disable-async",
   "./test/async.es5.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "--disable-async",
   "./test/async.es5.js"
@@ -335,21 +343,21 @@ enqueue("./bin/regenerator", [
 // Make sure we run the command-line tool on a file that does not need any
 // transformation, too.
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--disable-async",
   "./test/nothing-to-transform.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "--disable-async",
   "./test/nothing-to-transform.js"
@@ -359,21 +367,21 @@ enqueue("./bin/regenerator", [
 //
 //     You passed `path.replaceWith()` a falsy node, use `path.remove()` instead
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--disable-async",
   "./test/replaceWith-falsy.js"
 ], true);
 
-enqueue("./bin/regenerator", [
+enqueue(regeneratorCmd, [
   "--include-runtime",
   "--disable-async",
   "./test/replaceWith-falsy.js"
