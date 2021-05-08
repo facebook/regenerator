@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -734,7 +733,7 @@ var runtime = (function (exports) {
   typeof module === "object" ? module.exports : {}
 ));
 
-function getGlobal() {
+var getGlobal = function () {
   return (typeof globalThis === "object" && globalThis) ||
     (typeof window === "object" && window) ||
     (typeof self === "object" && self) ||
