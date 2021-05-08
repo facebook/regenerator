@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -733,23 +734,14 @@ var runtime = (function (exports) {
   typeof module === "object" ? module.exports : {}
 ));
 
-if (typeof globalThis === "object") {
-  globalThis.regeneratorRuntime = runtime;
-} else {
-  try {
-    regeneratorRuntime = runtime;
-  } catch (accidentalStrictMode) {
-    // This module should not be running in strict mode, so the above
-    // assignment should always work unless something is misconfigured. Just
-    // in case runtime.js accidentally runs in strict mode, we can escape
-    // strict mode using a global Function call. This could conceivably fail
-    // if a Content Security Policy forbids using Function, but in that case
-    // the proper solution is to fix the accidental strict mode problem. If
-    // you've misconfigured your bundler to force strict mode and applied a
-    // CSP to forbid Function, and you're not willing to fix either of those
-    // problems, please detail your unique predicament in a GitHub issue.
-    var _ = Function("return this")();
-    _.regeneratorRuntime = runtime;
-  }
+function getGlobal() {
+  return (typeof globalThis === "object" && globalThis) ||
+    (typeof window === "object" && window) ||
+    (typeof self === "object" && self) ||
+    (typeof global === "object" && global) ||
+    (function () { return this })() ||
+    Function("return this")();
 }
-
+var global = getGlobal();
+// If you found you failed at this line, please include a globalThis polyfill.
+global.regeneratorRuntime = runtime;
