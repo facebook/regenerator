@@ -452,7 +452,8 @@ var runtime = (function (exports) {
     this.reset(true);
   }
 
-  exports.keys = function(object) {
+  exports.keys = function(val) {
+    var object = Object(val);
     var keys = [];
     for (var key in object) {
       keys.push(key);
