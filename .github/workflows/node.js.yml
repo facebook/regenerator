@@ -5,9 +5,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -20,6 +23,15 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v1
+      with:
+        egress-policy: block
+        allowed-endpoints: >
+          github.com:443
+          nodejs.org:443
+          registry.npmjs.org:443
+
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
