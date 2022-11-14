@@ -25,8 +25,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Use latest npm
-      run: npm install --global npm@latest
+    - name: Use npm v8
+      run: npm install --global npm@8
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
