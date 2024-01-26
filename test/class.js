@@ -119,4 +119,30 @@ describe("class methods", function () {
     assert.strictEqual(new res().one(), 1);
     assert.strictEqual(new res().two(), 2);
   });
+
+  it("should allow computed method keys containing yield with argument", function () {
+    function *gen(prefix) {
+      return class Foo {
+        [yield "array iterator"](x) {
+          return [prefix + x][Symbol.iterator]();
+        }
+
+        *[yield "generator method"](x) {
+          yield (prefix + x);
+        }
+      }
+    }
+
+    const g = gen("prefix:");
+
+    assert.deepEqual(g.next(), { value: "array iterator", done: false });
+    assert.deepEqual(g.next("arr"), { value: "generator method", done: false });
+
+    const { value: Foo, done } = g.next("gen");
+    assert.strictEqual(done, true);
+
+    const foo = new Foo();
+    check(foo.arr("xxx"), ["prefix:xxx"]);
+    check(foo.gen("yyy"), ["prefix:yyy"]);
+  });
 });
