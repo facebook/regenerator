@@ -64,6 +64,12 @@ describe("simple argument yielder", function() {
     itr.next();
     itr.next(1);
     assert.equal(itr.next(2).value, 3);
+    
+    function *gen2() { return (yield null)[yield null]; }
+    var itr2 = gen2();
+    itr2.next();
+    itr2.next({propName: 1234});
+    assert.equal(itr2.next('propName').value, 1234);
   });
 });
 
