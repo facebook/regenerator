@@ -2625,6 +2625,9 @@ describe("generator function prototype", function() {
 
   it("should follow the expected object model", function() {
     var GeneratorFunctionPrototype = getProto(f);
+    var GeneratorPrototype = GeneratorFunctionPrototype.prototype;
+    var IteratorPrototype = getProto(GeneratorPrototype);
+    var Iterator = IteratorPrototype.constructor;
     var GeneratorFunction = GeneratorFunctionPrototype.constructor;
 
     assert.strictEqual(GeneratorFunction.name, 'GeneratorFunction');
@@ -2636,6 +2639,10 @@ describe("generator function prototype", function() {
                        getProto(f.prototype));
     assert.strictEqual(getProto(GeneratorFunctionPrototype),
                        Function.prototype);
+    assert.notStrictEqual(IteratorPrototype, Object);
+    assert.throws(() => Iterator.call({}));
+    assert.throws(() => new Iterator());
+    assert.strictEqual(f() instanceof f, true);
 
     if (typeof process === "undefined" ||
         process.version.slice(1, 3) === "0.") {
